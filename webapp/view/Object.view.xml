@@ -1,0 +1,121 @@
+<mvc:View
+  controllerName="bjmproject.controller.Object"
+  xmlns:mvc="sap.ui.core.mvc"
+  xmlns="sap.m"
+  xmlns:core="sap.ui.core"
+  xmlns:semantic="sap.f.semantic"
+  xmlns:form="sap.ui.layout.form">
+
+  <semantic:SemanticPage
+    id="jobDetailsPage"
+    headerPinnable="false"
+    toggleHeaderOnTitleClick="false">
+    <semantic:titleHeading>
+      <FlexBox alignItems="Start" justifyContent="SpaceBetween">
+        <Image src="https://www.sap.com/dam/application/shared/logos/sap-logo-svg.svg" width="75px" />
+        <Title text="{i18n>ObjectPageTitle}"/>
+      </FlexBox>
+    </semantic:titleHeading>
+    <semantic:headerContent>
+      <FlexBox alignItems="Start" justifyContent="SpaceBetween">
+        <Panel backgroundDesign="Transparent">
+          <ObjectAttribute
+            title="{i18n>ObjectJobIdText}"
+            text="{Id}" />
+        </Panel>
+      </FlexBox>
+    </semantic:headerContent>
+    <semantic:content>
+      <Panel
+        class="sapUiNoContentPadding myPanel"
+        backgroundDesign="Transparent"
+        headerText="{i18n>ObjectJobTabTitle}">
+        <content>
+          <HBox>
+  <VBox width="50%">
+    <form:SimpleForm
+      layout="ResponsiveGridLayout"
+      columnsXL="1"
+      columnsL="1"
+      columnsM="1"
+      labelSpanXL="4"
+      labelSpanL="4"
+      labelSpanM="12"
+      emptySpanXL="0"
+      emptySpanL="0"
+      emptySpanM="0">
+      <form:content>
+        <Label text="{i18n>ObjectJobNameText}" />
+        <Text text="{Jobname}" />
+        <Label text="{i18n>ObjectJobCountText}" />
+        <Text text="{Jobcount}" />
+        <Label text="{i18n>ObjectJobStatusText}" />
+        <Text text="{Status}" />
+        <Label text="{i18n>ObjectJobStartDateText}" />
+        <Text text="{Strtdate}" />
+        <Label text="{i18n>ObjectJobStartTimeText}" />
+        <Text text="{Strttime}" />
+        <Label text="{i18n>ObjectJobEndDateText}" />
+        <Text text="{Enddate}" />
+        <Label text="{i18n>ObjectJobEndTimeText}" />
+        <Text text="{Endtime}" />
+        <Label text="{i18n>ObjectJobAuthcknamText}" />
+        <Text text="{Authcknam}" />
+        <Label text="{i18n>ObjectJobStepcountText}" />
+        <Text text="{Stepcount}" />
+        <Label text="{i18n>ObjectJobPrognameText}" />
+        <Text text="{Progname}" />
+        <Label text="{i18n>ObjectJobVariantText}" />
+        <Text text="{Variant}" />
+        <Label text="{i18n>ObjectJobError_msgText}" />
+        <Text text="{Error_msg}" />
+      </form:content>
+    </form:SimpleForm>
+  </VBox>
+  <VBox width="50%">
+    <form:SimpleForm
+      layout="ResponsiveGridLayout"
+      columnsXL="1"
+      columnsL="1"
+      columnsM="1"
+      labelSpanXL="4"
+      labelSpanL="4"
+      labelSpanM="12"
+      emptySpanXL="0"
+      emptySpanL="0"
+      emptySpanM="0">
+      <form:content>
+        <Label text="{i18n>ObjectJobDurationText}" />
+        <Text text="{Duration}" />
+        <Label text="{i18n>ObjectJobCustom_logText}" />
+        <Text text="{Custom_log}" />
+        <Label text="{i18n>ObjectJobAlert_sentText}" />
+        <Text text="{Alert_sent}" />
+        <Label text="{i18n>ObjectJobRetry_countText}" />
+        <Text text="{Retry_count}" />
+        <Label text="{i18n>ObjectJobLog_dateText}" />
+        <Text text="{Log_date}" />
+        <Label text="{i18n>ObjectJobLog_timeText}" />
+        <Text text="{Log_time}" />
+        <Label text="{i18n>ObjectJobCreate_byText}" />
+        <Text text="{Create_by}" />
+        <Label text="{i18n>ObjectJobCreate_onText}" />    
+        <Text text="{Create_on}" />
+        <Label text="{i18n>ObjectJobCreate_atText}" />    
+        <Text text="{Create_at}" />
+        <Label text="{i18n>ObjectJobChange_byText}" />
+        <Text text="{Change_by}" />
+        <Label text="{i18n>ObjectJobChange_onText}" />
+        <Text text="{Change_on}" />
+        <Label text="{i18n>ObjectJobChange_atText}" />
+        <Text text="{Change_at}" />
+      </form:content>
+    </form:SimpleForm>
+  </VBox>
+</HBox>
+
+        </content>
+      </Panel>
+    </semantic:content>
+  </semantic:SemanticPage>
+</mvc:View>

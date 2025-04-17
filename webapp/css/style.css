@@ -1,0 +1,150 @@
+/* SAP Logo */
+#sapLogo {
+    position: fixed; /* Fixed position to avoid scrolling issues */
+    top: 20px; /* Keep logo at the top */
+    left: 20px; /* Add padding from the left */
+    width: 100px; /* Reduce the width to half */
+    height: auto;
+    z-index: 1000; /* Ensure logo appears above other elements */
+    pointer-events: none; /* Prevent interactions with the logo */
+}
+
+/* Title Text */
+#appTitle {
+    position: fixed;
+    top: 26px; /* Align with the SAP logo */
+    left: 120px; /* Increase spacing to the right of the logo */
+    font-size: 18px; /* Adjust font size */
+    font-weight: bold;
+    color: #32363a; /* Match UI5 text color */
+    z-index: 999; /* Ensure it appears above other elements */
+}
+
+/* Adjust Toolbar and Title */
+#jobTableToolbar {
+    margin-top: 120px; /* Push the toolbar down to avoid overlapping with the logo */
+}
+
+/* Background and Colors */
+html, body {
+    overflow-y: hidden;
+    background-color: #f7f7f7; /* UI5 light background */
+    color: #32363a; /* UI5 text color */
+    font-family: "72", Arial, sans-serif; /* UI5 font */
+}
+
+.sapUiBody {
+    background-color: #ffffff; /* UI5 white container background */
+    border: 1px solid #d9d9d9; /* UI5 border color */
+    border-radius: 4px; /* UI5 border radius */
+    /* padding: 16px; */
+}
+
+/* Search Field */
+#searchField {
+    width: 200px; /* Reduce the width of the search bar */
+    float: right; /* Align the search bar to the right */
+    margin-right: 20px; /* Add spacing from the right edge */
+    margin-top: -40px; /* Adjust vertical alignment to avoid overlapping */
+}
+
+.iconTabSelected .sapMITBText {
+    font-weight: bold;
+    font-size: 10rem;
+}
+
+
+.biggerClickableTab {
+    padding: 16px !important; /* Tăng khoảng cách bên trong */
+    font-size: 1.2rem !important; /* Tăng kích thước chữ */
+    min-height: 48px; /* Tăng chiều cao tối thiểu */
+    display: flex;
+    align-items: center; /* Căn giữa nội dung theo chiều dọc */
+    justify-content: center; /* Căn giữa nội dung theo chiều ngang */
+}
+
+#jobDetailsForm .sapUiFormResGridLayout {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 16px !important;
+}
+
+#jobDetailsForm .sapUiRespGridSpanXL4,
+#jobDetailsForm .sapUiRespGridSpanL12,
+#jobDetailsForm .sapUiRespGridSpanM12,
+#jobDetailsForm .sapUiRespGridSpanS12 {
+    grid-column: span 1 !important; /* Đảm bảo mỗi phần tử chỉ chiếm 1 cột */
+}
+
+/* Target text */
+.sapMITBFilter[data-iconcolor="green"] .sapMITBText {
+    color: green !important;
+  }
+  
+  /* Target icon via ::before */
+  .sapMITBFilter[data-iconcolor="green"] .sapMITBIcon::before {
+    color: green !important;
+  }
+  
+  .sapMITBFilter[data-iconcolor="gray"] .sapMITBIcon::before {
+    color: gray !important;
+  }
+  /* #__xmlview0--releasedTab-icon {
+    color: green !important;
+  } */
+
+  .sapMITBFilter[data-iconcolor="green"] .sapUiIcon {
+    color: green !important;
+  }
+
+  .sapMITBFilter[data-iconcolor="green"] .sapMITBFilterIcon {
+    color: green !important;
+  }
+
+  .headerShadow {
+    background-color: #ffffff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 1rem;
+    width: 100%;
+    border-radius: 0 0 8px 8px;
+    z-index: 1;
+  }
+
+  #jobDetailsForm .sapUiFormResGridLayout {
+    gap: 16px; /* Khoảng cách giữa các phần tử */
+}
+
+.customSimpleForm .sapUiFormResGridLayout {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Chia thành 2 cột */
+    gap: 16px; /* Khoảng cách giữa các phần tử */
+}
+
+/* jondetail title*/
+.myPanel .sapMPanelHdr {
+    font-size: 28px !important;
+  }
+
+
+/* ẩn hiện biểu đồ*/
+  #chartContainer {
+    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+    will-change: transform, opacity;
+  }
+  
+  #chartContainer.hidden {
+    transform: translateY(-100%); /* Di chuyển lên trên */
+    opacity: 0;                   /* Làm mờ */
+    pointer-events: none;         /* Vô hiệu hóa tương tác */
+  }
+
+  /* Hiệu ứng ẩn/hiện mượt */
+#chartContainer {
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+#chartContainer.hidden-chart {
+    transform: translateY(-100%);
+    opacity: 0;
+    pointer-events: none;
+}

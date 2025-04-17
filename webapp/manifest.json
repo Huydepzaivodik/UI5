@@ -1,0 +1,114 @@
+{
+  "_version": "1.65.0",
+  "sap.app": {
+    "id": "bjmproject",
+    "type": "application",
+    "i18n": "i18n/i18n.properties",
+    "applicationVersion": {
+      "version": "0.0.1"
+    },
+    "title": "{{appTitle}}",
+    "description": "{{appDescription}}",
+    "dataSources": {
+      "mainService": {
+        "uri": "/sap/opu/odata/sap/ZG3_SEGW_DB_UI5_SRV_02/",
+        "type": "OData",
+        "settings": {
+          "odataVersion": "2.0"
+        }
+      }
+    }
+  },
+  "sap.ui": {
+    "technology": "UI5",
+    "deviceTypes": {
+      "desktop": true,
+      "tablet": true,
+      "phone": true
+    }
+  },
+  "sap.ui5": {
+    "rootView": {
+      "viewName": "bjmproject.view.App",
+      "type": "XML",
+      "id": "App"
+    },
+    "contentDensities": {
+      "compact": true,
+      "cozy": true
+    },
+    "dependencies": {
+      "minUI5Version": "1.134.0",
+      "libs": {
+        "sap.m": {},
+        "sap.ui.core": {}
+      }
+    },
+    "models": {
+      "": {
+        "dataSource": "mainService",
+        "settings": {
+          "defaultBindingMode": "TwoWay",
+          "defaultCountMode": "Inline",
+          "useBatch": true
+        }
+      },
+      "dataSources": {
+        "mainService": {
+          "uri": "/sap/opu/odata/SAP/ZG3_SEGW_DB_UI5_SRV_02/",
+          "type": "OData",
+          "settings": {
+            "odataVersion": "2.0"
+          }
+        }
+      },
+      "i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "bjmproject.i18n.i18n"
+        }
+      }
+    },
+    "resources": {
+      "css": [
+        {
+          "uri": "css/style.css"
+        }
+      ]
+    },
+    "routing": {
+      "config": {
+        "routerClass": "sap.m.routing.Router",
+        "viewType": "XML",
+        "viewPath": "bjmproject.view",
+        "controlId": "app",
+        "controlAggregation": "pages",
+        "bypassed": {
+          "target": "notFound"
+        }
+      },
+      "routes": [
+        {
+          "pattern": "",
+          "name": "ViewReport",
+          "target": "ViewReport"
+        },
+        {
+          "pattern": "{jobId}",
+          "name": "JobDetails",
+          "target": "JobDetails"
+        }
+      ],
+      "targets": {
+        "ViewReport": {
+          "viewName": "ViewReport",
+          "viewLevel": 1
+        },
+        "JobDetails": {
+          "viewName": "Object",
+          "viewLevel": 2
+        }
+      }
+    }
+  }
+}
