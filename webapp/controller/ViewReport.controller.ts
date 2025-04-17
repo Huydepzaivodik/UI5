@@ -7,6 +7,7 @@ import Event from "sap/ui/base/Event"; // Import Event từ đúng module
 import { sap } from "sap/ui/core/library"; // Import sap từ đúng module
 import JSONModel from "sap/ui/model/json/JSONModel";
 //hehe
+//kimochi o o
 export default class ViewReport extends BaseController {
   public formatter = formatter;
 
