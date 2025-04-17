@@ -6,7 +6,7 @@ import SearchField from "sap/m/SearchField"; // Import SearchField từ đúng m
 import Event from "sap/ui/base/Event"; // Import Event từ đúng module
 import { sap } from "sap/ui/core/library"; // Import sap từ đúng module
 import JSONModel from "sap/ui/model/json/JSONModel";
-
+//hehe
 export default class ViewReport extends BaseController {
   public formatter = formatter;
 
