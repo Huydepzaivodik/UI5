@@ -464,14 +464,14 @@ export default class ViewReport extends BaseController {
     ];
 
     const totalBackgroundColor = [
-      "rgba(128, 128, 128, 0.5)", // Màu xám nhạt cho total
-      "rgba(128, 128, 128, 0.5)",
-      "rgba(128, 128, 128, 0.5)",
-      "rgba(128, 128, 128, 0.5)",
-      "rgba(128, 128, 128, 0.5)",
-      "rgba(128, 128, 128, 0.5)",
-      "rgba(128, 128, 128, 0.5)"
-  ];
+      "rgba(255, 105, 180, 1)", // Màu hồng đậm
+      "rgba(255, 105, 180, 1)",
+      "rgba(255, 105, 180, 1)",
+      "rgba(255, 105, 180, 01)",
+      "rgba(255, 105, 180, 1)",
+      "rgba(255, 105, 180, 1)",
+      "rgba(255, 105, 180, 1)"
+    ];
     // Bar Chart
     const barCtx = document.getElementById("barChart") as HTMLCanvasElement;
     if (barCtx) {
@@ -506,7 +506,7 @@ export default class ViewReport extends BaseController {
                 size: 20, // chỉnh to lên (ví dụ: 20px)
               },
             },
-            legend: { display: true },
+            legend: { display: false },
           },
           scales: {
             x: {
@@ -515,7 +515,7 @@ export default class ViewReport extends BaseController {
             y: {
                 beginAtZero: true
             }
-        }
+        } 
         },
       });
     }
