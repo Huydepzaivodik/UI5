@@ -97,11 +97,11 @@
             text="Running" />
 
         <IconTabFilter
-            id="abortedTab"
-            key="Aborted"
+            id="CanceledTab"
+            key="Canceled"
             icon="sap-icon://decline"
-            count="{jobModel>/counts/Aborted}"
-            text="Aborted" />
+            count="{jobModel>/counts/Canceled}"
+            text="Canceled" />
 
         <IconTabFilter
             id="finishedTab"
@@ -264,14 +264,14 @@
                   <!-- <Text id="customLogText" text="{jobModel>CustomLog}" />
                   <Text id="alertSentText" text="{jobModel>AlertSent}" />
                   <Text id="retryCountText" text="{jobModel>RetryCount}" />
-                  <Text id="logDateText" text="{jobModel>LogDate}" />
+                   <Text id="logDateText" text="{jobModel>LogDate}" />
                   <Text id="logTimeText" text="{jobModel>LogTime}" />
                   <Text id="createByText" text="{jobModel>CreateBy}" />
                   <Text id="createOnText" text="{jobModel>CreateOn}" />
                   <Text id="createAtText" text="{jobModel>CreateAt}" />
                   <Text id="changeByText" text="{jobModel>ChangeBy}" />
                   <Text id="changeOnText" text="{jobModel>ChangeOn}" />
-                  <Text id="changeAtText" text="{jobModel>ChangeAt}" /> -->
+                  <Text id="changeAtText" text="{jobModel>ChangeAt}" /> --> 
                 </cells>
               </ColumnListItem>
             </items>
