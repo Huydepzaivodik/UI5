@@ -6,6 +6,8 @@ import SearchField from "sap/m/SearchField"; // Import SearchField từ đúng m
 import Event from "sap/ui/base/Event"; // Import Event từ đúng module
 import { sap } from "sap/ui/core/library"; // Import sap từ đúng module
 import JSONModel from "sap/ui/model/json/JSONModel";
+
+
 //hehe
 //kimochi o o
 // u i a
@@ -428,6 +430,16 @@ export default class ViewReport extends BaseController {
     const Chart = (window as any).Chart;
     if (!Chart) return;
 
+
+    // Kiểm tra và đăng ký chartjs-plugin-datalabels
+  const ChartDataLabels = (window as any).ChartDataLabels;
+  if (ChartDataLabels) {
+    Chart.register(ChartDataLabels);
+    console.log("chartjs-plugin-datalabels registered successfully");
+  } else {
+    console.warn("chartjs-plugin-datalabels is not loaded, datalabels will be disabled");
+  }
+  
     const labels = [
       "Scheduled",
       "Released",
@@ -491,8 +503,9 @@ export default class ViewReport extends BaseController {
             {
               label: "Total Jobs",
               data: totalData, // Giá trị totalJobs cho mỗi cột
-              backgroundColor: totalBackgroundColor
-          }
+              backgroundColor: totalBackgroundColor,
+                       
+          },
           ],
         },
         options: {
@@ -506,7 +519,8 @@ export default class ViewReport extends BaseController {
                 size: 20, // chỉnh to lên (ví dụ: 20px)
               },
             },
-            legend: { display: false },
+          
+            legend: { display: false, position: "top" },
           },
           scales: {
             x: {
