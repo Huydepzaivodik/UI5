@@ -15,9 +15,9 @@ export interface Job {
   Duration: number;
   Custom_log: string;
   Alert_sent: string | null;
-  Retry_count: number;
-  Log_date: string;
-  Log_time: string | null;
+  Delay: number;
+  Sdlstrtdt: string;
+  Sdlstrttm: string | null;
   Create_by: string;
   Create_on: string;
   Create_at: string | null;

@@ -11,7 +11,7 @@
     "description": "{{appDescription}}",
     "dataSources": {
       "mainService": {
-        "uri": "/sap/opu/odata/sap/ZG3_SEGW_DB_UI5_SRV_02/",
+        "uri": "/sap/opu/odata/sap/ZG3_SEGW_DB_UI5_01_SRV/",
         "type": "OData",
         "settings": {
           "odataVersion": "2.0"
@@ -55,7 +55,7 @@
       },
       "dataSources": {
         "mainService": {
-          "uri": "/sap/opu/odata/SAP/ZG3_SEGW_DB_UI5_SRV_02/",
+          "uri": "/sap/opu/odata/SAP/ZG3_SEGW_DB_UI5_01_SRV/",
           "type": "OData",
           "settings": {
             "odataVersion": "2.0"

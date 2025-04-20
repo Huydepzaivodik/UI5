@@ -19,7 +19,7 @@ export default class JobDetails extends BaseController {
 
     // Sử dụng metadataLoaded để đảm bảo metadata đã được tải
     oModel.metadataLoaded().then(() => {
-      const sPath = `/ZG3_ET_UI5Set('${sJobId}')`;
+      const sPath = `/ZG3_ET_UI5_01Set('${sJobId}')`;
       console.log("Binding path:", sPath);
 
       const oData = oModel.getProperty(sPath);

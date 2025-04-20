@@ -48,7 +48,7 @@ export default class Component extends BaseComponent {
                 Aborted: 0,
                 Finished: 0,
             },
-            ZG3_ET_UI5Set: [] // Dữ liệu bảng
+            ZG3_ET_UI5_01Set: [] // Dữ liệu bảng
         });
     
         // Gắn jobModel vào Component

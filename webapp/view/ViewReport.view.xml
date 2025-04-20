@@ -113,7 +113,7 @@
         <content>
           <Table
             id="jobTable"
-            items="{jobModel>/ZG3_ET_UI5Set}"
+            items="{jobModel>/ZG3_ET_UI5_01Set}"
             updateFinished="onUpdateFinished"
             class="sapUiSizeCompact">
             <headerToolbar>

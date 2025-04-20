@@ -46,11 +46,11 @@ export default class ViewReport extends BaseController {
         Finished: 0,
       },
       selectedTab: "All", // <-- thêm dòng này
-      ZG3_ET_UI5Set: [],
+      ZG3_ET_UI5_01Set: [],
     });
 
     this.getOwnerComponent()?.setModel(oJSONModel, "jobModel");
-    oModel.read("/ZG3_ET_UI5Set", {
+    oModel.read("/ZG3_ET_UI5_01Set", {
       success: (oData: { results: any[] }) => {
         console.log("Data loaded successfully", oData.results);
 
@@ -59,7 +59,7 @@ export default class ViewReport extends BaseController {
           "jobModel"
         ) as sap.ui.model.json.JSONModel;
         if (oJSONModel) {
-          oJSONModel.setProperty("/ZG3_ET_UI5Set", oData.results);
+          oJSONModel.setProperty("/ZG3_ET_UI5_01Set", oData.results);
         }
       },
       error: (err: any) => {
@@ -322,7 +322,7 @@ export default class ViewReport extends BaseController {
     }
 
     // Lấy dữ liệu từ jobModel
-    const aData = oViewModel.getProperty("/ZG3_ET_UI5Set") || [];
+    const aData = oViewModel.getProperty("/ZG3_ET_UI5_01Set") || [];
     const oCounts = {
       All: aData.length,
       Scheduled: 0,
