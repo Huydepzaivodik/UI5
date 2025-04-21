@@ -170,6 +170,9 @@
               <Column id="colAuthcknam" width="12rem">
                 <Text id="colAuthcknamHeader" text="Authcknam" />
               </Column>
+              <Column id="colDelay" width="12rem">
+                <Text id="colDelayHeader" text="Delay" />
+              </Column>
               <!-- <Column id="colStepcount" width="8rem">
                 <Text id="colStepcountHeader" text="Stepcount" />
               </Column> -->
@@ -256,6 +259,7 @@
                   <!-- , formatter: '.formatter.formatDate' -->
                   <!-- <Text id="endTimeText" text="{jobModel>Endtime}" /> -->
                   <Text id="authcknamText" text="{jobModel>Authcknam}" />
+                  <Text id="delayText" text="{jobModel>Delay}" />
                   <!-- <Text id="stepcountText" text="{jobModel>Stepcount}" />
                   <Text id="prognameText" text="{jobModel>Progname}" />
                   <Text id="variantText" text="{jobModel>Variant}" />
