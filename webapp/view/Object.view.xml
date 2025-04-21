@@ -51,9 +51,9 @@
         <Text text="{Jobcount}" />
         <Label text="{i18n>ObjectJobStatusText}" />
         <Text text="{Status}" />
-        <Label text="{i18n>ObjectJobStartDateText}" />
+        <Label text="{i18n>ObjectJobExecutionDateText}" />
         <Text text="{Strtdate}" />
-        <Label text="{i18n>ObjectJobStartTimeText}" />
+        <Label text="{i18n>ObjectJobExecutionTimeText}" />
         <Text text="{Strttime}" />
         <Label text="{i18n>ObjectJobEndDateText}" />
         <Text text="{Enddate}" />
@@ -68,7 +68,7 @@
         <Label text="{i18n>ObjectJobVariantText}" />
         <Text text="{Variant}" />
         <Label text="{i18n>ObjectJobError_msgText}" />
-        <Text text="{Error_msg}" />
+        <Text text="{ErrorMsg}" />
       </form:content>
     </form:SimpleForm>
   </VBox>
@@ -88,27 +88,27 @@
         <Label text="{i18n>ObjectJobDurationText}" />
         <Text text="{Duration}" />
         <Label text="{i18n>ObjectJobCustom_logText}" />
-        <Text text="{Custom_log}" />
+        <Text text="{CustomLog}" />
         <Label text="{i18n>ObjectJobAlert_sentText}" />
-        <Text text="{Alert_sent}" />
-        <Label text="{i18n>ObjectJobRetry_countText}" />
-        <Text text="{Retry_count}" />
-        <Label text="{i18n>ObjectJobLog_dateText}" />
-        <Text text="{Log_date}" />
-        <Label text="{i18n>ObjectJobLog_timeText}" />
-        <Text text="{Log_time}" />
+        <Text text="{AlertSent}" />
+        <Label text="{i18n>ObjectJobDelayText}" />
+        <Text text="{Delay}" />
+        <Label text="{i18n>ObjectJobStart_dateText}" />
+        <Text text="{Sdlstrtdt}" />
+        <Label text="{i18n>ObjectJobStart_timeText}" />
+        <Text text="{Sdlstrttm}" />
         <Label text="{i18n>ObjectJobCreate_byText}" />
-        <Text text="{Create_by}" />
+        <Text text="{CreateBy}" />
         <Label text="{i18n>ObjectJobCreate_onText}" />    
-        <Text text="{Create_on}" />
+        <Text text="{CreateOn}" />
         <Label text="{i18n>ObjectJobCreate_atText}" />    
-        <Text text="{Create_at}" />
+        <Text text="{CreateAt}" />
         <Label text="{i18n>ObjectJobChange_byText}" />
-        <Text text="{Change_by}" />
+        <Text text="{ChangeBy}" />
         <Label text="{i18n>ObjectJobChange_onText}" />
-        <Text text="{Change_on}" />
+        <Text text="{ChangeOn}" />
         <Label text="{i18n>ObjectJobChange_atText}" />
-        <Text text="{Change_at}" />
+        <Text text="{ChangeAt}" />
       </form:content>
     </form:SimpleForm>
   </VBox>

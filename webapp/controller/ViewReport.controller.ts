@@ -135,46 +135,111 @@ export default class ViewReport extends BaseController {
   // }
 
   //thêm bóng cho biểu đồ
+  // public onIconTabSelect(oEvent: sap.ui.base.Event): void {
+  //   const sSelectedKey = oEvent.getParameter("key");
+  //   console.log("Selected key:", sSelectedKey);
+
+  //   const oModel = this.getOwnerComponent()?.getModel("jobModel") as JSONModel;
+  //   oModel.setProperty("/selectedTab", sSelectedKey);
+
+  //   const oTable = this.byId("jobTable") as sap.m.Table;
+  //   const oBinding = oTable?.getBinding("items");
+
+  //   if (oBinding) {
+  //     const aFilters =
+  //       sSelectedKey === "all" ? [] : this._mFilters[sSelectedKey];
+  //     oBinding.filter(aFilters);
+  //   }
+
+  //   // 🔁 Khôi phục phần cập nhật tiêu đề bảng
+  //   const oViewModel = oModel;
+  //   if (oViewModel) {
+  //     const oCounts = oViewModel.getProperty("/counts");
+  //     const iCount =
+  //       sSelectedKey === "all" ? oCounts.All : oCounts[sSelectedKey];
+  //     const oResourceBundle = this.getOwnerComponent()
+  //       ?.getModel("i18n")
+  //       ?.getResourceBundle();
+  //     const sTitle = oResourceBundle?.getText("JobsReportTableTitle", [iCount]);
+  //     this.getView().byId("jobTableToolbar").getContent()[0].setText(sTitle);
+  //   }
+
+  //   // ✅ Gọi lại biểu đồ sau khi tab đổi
+  //   setTimeout(() => {
+  //     const counts = oModel.getProperty("/counts");
+  //     const totalJobs =
+  //       counts.Scheduled +
+  //       counts.Released +
+  //       counts.Ready +
+  //       counts.Active +
+  //       counts.Running +
+  //       counts.Canceled +
+  //       counts.Finished;
+  //     this._renderCharts(counts, totalJobs);
+  //   }, 0);
+  // }
   public onIconTabSelect(oEvent: sap.ui.base.Event): void {
     const sSelectedKey = oEvent.getParameter("key");
-    console.log("Selected key:", sSelectedKey);
-
+    console.log("IconTabSelect called, key:", sSelectedKey);
+  
+    // Lấy jobModel
     const oModel = this.getOwnerComponent()?.getModel("jobModel") as JSONModel;
+    if (!oModel) {
+      console.error("jobModel not found");
+      return;
+    }
+  
+    // Xử lý tab biểu đồ (tab1, tab2)
+    if (sSelectedKey === "tab1" || sSelectedKey === "tab2") {
+      // Chỉ làm mới biểu đồ, không thay đổi bộ lọc hoặc /selectedTab
+      setTimeout(() => {
+        const counts = oModel.getProperty("/counts") || {};
+        const totalJobs =
+          (counts.Scheduled || 0) +
+          (counts.Released || 0) +
+          (counts.Ready || 0) +
+          (counts.Active || 0) +
+          (counts.Running || 0) +
+          (counts.Canceled || 0) +
+          (counts.Finished || 0);
+        this._renderCharts(counts, totalJobs);
+      }, 0);
+      return;
+    }
+  
+    // Xử lý tab trạng thái (All, Scheduled, Ready, v.v.)
     oModel.setProperty("/selectedTab", sSelectedKey);
-
+  
     const oTable = this.byId("jobTable") as sap.m.Table;
-    const oBinding = oTable?.getBinding("items");
-
-    if (oBinding) {
-      const aFilters =
-        sSelectedKey === "all" ? [] : this._mFilters[sSelectedKey];
-      oBinding.filter(aFilters);
+    const oBinding = oTable.getBinding("items");
+    if (!oBinding) {
+      console.error("Table binding not found");
+      return;
     }
-
-    // 🔁 Khôi phục phần cập nhật tiêu đề bảng
-    const oViewModel = oModel;
-    if (oViewModel) {
-      const oCounts = oViewModel.getProperty("/counts");
-      const iCount =
-        sSelectedKey === "all" ? oCounts.All : oCounts[sSelectedKey];
-      const oResourceBundle = this.getOwnerComponent()
-        ?.getModel("i18n")
-        ?.getResourceBundle();
-      const sTitle = oResourceBundle?.getText("JobsReportTableTitle", [iCount]);
-      this.getView().byId("jobTableToolbar").getContent()[0].setText(sTitle);
-    }
-
-    // ✅ Gọi lại biểu đồ sau khi tab đổi
+  
+    // Áp dụng bộ lọc
+    const aFilters = this._mFilters[sSelectedKey] || [];
+    console.log("Applying filter for status:", sSelectedKey, "Filters:", aFilters);
+    oBinding.filter(aFilters);
+  
+    // Cập nhật tiêu đề động
+    const oCounts = oModel.getProperty("/counts") || {};
+    const iCount = sSelectedKey === "All" ? oCounts.All || 0 : oCounts[sSelectedKey] || 0;
+    const oResourceBundle = this.getOwnerComponent()?.getModel("i18n")?.getResourceBundle();
+    const sTitle = oResourceBundle?.getText("JobsReportTableTitle", [iCount]) || `Jobs (${iCount})`;
+    this.getView().byId("jobTableToolbar").getContent()[0].setText(sTitle);
+  
+    // Làm mới biểu đồ
     setTimeout(() => {
-      const counts = oModel.getProperty("/counts");
+      const counts = oModel.getProperty("/counts") || {};
       const totalJobs =
-        counts.Scheduled +
-        counts.Released +
-        counts.Ready +
-        counts.Active +
-        counts.Running +
-        counts.Canceled +
-        counts.Finished;
+        (counts.Scheduled || 0) +
+        (counts.Released || 0) +
+        (counts.Ready || 0) +
+        (counts.Active || 0) +
+        (counts.Running || 0) +
+        (counts.Canceled || 0) +
+        (counts.Finished || 0);
       this._renderCharts(counts, totalJobs);
     }, 0);
   }
@@ -254,23 +319,63 @@ export default class ViewReport extends BaseController {
     });
   }
 
+  // public onChartTabSelect(oEvent: sap.ui.base.Event): void {
+  //   const sKey = oEvent.getParameter("key");
+  //   const counts = this.getOwnerComponent()
+  //     ?.getModel("jobModel")
+  //     ?.getProperty("/counts");
+
+  //   const totalJobs =
+  //     counts.Scheduled +
+  //     counts.Released +
+  //     counts.Ready +
+  //     counts.Active +
+  //     counts.Running +
+  //     counts.Canceled +
+  //     counts.Finished;
+
+  //   this._renderCharts(counts, totalJobs);
+  // }
   public onChartTabSelect(oEvent: sap.ui.base.Event): void {
-    const sKey = oEvent.getParameter("key");
-    const counts = this.getOwnerComponent()
-      ?.getModel("jobModel")
-      ?.getProperty("/counts");
-
-    const totalJobs =
-      counts.Scheduled +
-      counts.Released +
-      counts.Ready +
-      counts.Active +
-      counts.Running +
-      counts.Canceled +
-      counts.Finished;
-
-    this._renderCharts(counts, totalJobs);
+    const sKey = oEvent.getParameter("key"); // Lấy key từ sự kiện (tab1, tab2)
+    console.log("Chart tab selected, key:", sKey);
+  
+    // Lấy jobModel
+    const oModel = this.getOwnerComponent()?.getModel("jobModel") as JSONModel;
+    if (!oModel) {
+      console.error("jobModel not found");
+      return;
+    }
+  
+    // KHÔNG cập nhật /selectedTab hoặc bộ lọc để giữ nguyên trạng thái lọc hiện tại
+    // Chỉ làm mới biểu đồ
+    setTimeout(() => {
+      const counts = oModel.getProperty("/counts") || {};
+      const totalJobs =
+        counts.Scheduled +
+        counts.Released +
+        counts.Ready +
+        counts.Active +
+        counts.Running +
+        counts.Canceled +
+        counts.Finished;
+  
+      // Gọi _renderCharts với counts và totalJobs
+      this._renderCharts(counts, totalJobs);
+    }, 0);
   }
+
+
+  private _chartKeyMap: Record<string, string> = {
+    tab1: "Ready",
+    tab2: "Scheduled",
+    tab3: "Released",
+    tab4: "Active",
+    // Thêm các ánh xạ khác nếu cần
+  };
+
+
+
 
   public onStatusTabSelect(oEvent: sap.ui.base.Event): void {
     const sKey = oEvent.getParameter("key");
@@ -423,22 +528,21 @@ export default class ViewReport extends BaseController {
   }
 
   //
-  private _renderCharts(
-    counts: Record<string, number>,
-    totalJobs: Number
-  ): void {
+  private _renderCharts(counts: Record<string, number>, totalJobs: number): void {
     const Chart = (window as any).Chart;
-    if (!Chart) return;
-
-
+    if (!Chart) {
+      console.error("Chart.js not found");
+      return;
+    }
+  
     // Kiểm tra và đăng ký chartjs-plugin-datalabels
-  const ChartDataLabels = (window as any).ChartDataLabels;
-  if (ChartDataLabels) {
-    Chart.register(ChartDataLabels);
-    console.log("chartjs-plugin-datalabels registered successfully");
-  } else {
-    console.warn("chartjs-plugin-datalabels is not loaded, datalabels will be disabled");
-  }
+    const ChartDataLabels = (window as any).ChartDataLabels;
+    if (ChartDataLabels) {
+      Chart.register(ChartDataLabels);
+      console.log("chartjs-plugin-datalabels registered successfully");
+    } else {
+      console.warn("chartjs-plugin-datalabels is not loaded, datalabels will be disabled");
+    }
   
     const labels = [
       "Scheduled",
@@ -449,22 +553,19 @@ export default class ViewReport extends BaseController {
       "Canceled",
       "Finished",
     ];
-
+  
     const data = [
-      counts.Scheduled,
-      counts.Released,
-      counts.Ready,
-      counts.Active,
-      counts.Running,
-      counts.Canceled,
-      counts.Finished,
+      counts.Scheduled || 0,
+      counts.Released || 0,
+      counts.Ready || 0,
+      counts.Active || 0,
+      counts.Running || 0,
+      counts.Canceled || 0,
+      counts.Finished || 0,
     ];
-
-    const totalData = [];
-    for (let i = 0; i < labels.length; i++) {
-      totalData.push(totalJobs);
-    }
-
+  
+    const totalData = labels.map(() => totalJobs);
+  
     const backgroundColor = [
       "#3498db",
       "#8e44ad",
@@ -474,22 +575,15 @@ export default class ViewReport extends BaseController {
       "#e74c3c",
       "#2ecc71",
     ];
-
-    const totalBackgroundColor = [
-      "rgba(255, 105, 180, 1)", // Màu hồng đậm
-      "rgba(255, 105, 180, 1)",
-      "rgba(255, 105, 180, 1)",
-      "rgba(255, 105, 180, 01)",
-      "rgba(255, 105, 180, 1)",
-      "rgba(255, 105, 180, 1)",
-      "rgba(255, 105, 180, 1)"
-    ];
+  
+    const totalBackgroundColor = labels.map(() => "rgba(255, 105, 180, 1)");
+  
     // Bar Chart
     const barCtx = document.getElementById("barChart") as HTMLCanvasElement;
     if (barCtx) {
       const existingBarChart = (Chart as any).getChart?.(barCtx.id);
       if (existingBarChart) existingBarChart.destroy();
-
+  
       new Chart(barCtx, {
         type: "bar",
         data: {
@@ -497,15 +591,14 @@ export default class ViewReport extends BaseController {
           datasets: [
             {
               label: "Jobs by Status",
-              data:data,
-              backgroundColor,
+              data: data,
+              backgroundColor: backgroundColor,
             },
             {
               label: "Total Jobs",
-              data: totalData, // Giá trị totalJobs cho mỗi cột
+              data: totalData,
               backgroundColor: totalBackgroundColor,
-                       
-          },
+            },
           ],
         },
         options: {
@@ -515,31 +608,26 @@ export default class ViewReport extends BaseController {
             title: {
               display: true,
               text: "Job Status – Bar Chart",
-              font: {
-                size: 20, // chỉnh to lên (ví dụ: 20px)
-              },
+              font: { size: 20 },
             },
-          
             legend: { display: false, position: "top" },
           },
           scales: {
-            x: {
-                stacked: false // Hiển thị các cột liền cạnh
-            },
-            y: {
-                beginAtZero: true
-            }
-        } 
+            x: { stacked: false },
+            y: { beginAtZero: true },
+          },
         },
       });
+    } else {
+      console.error("barChart canvas not found");
     }
-
+  
     // Pie Chart
     const pieCtx = document.getElementById("pieChart") as HTMLCanvasElement;
     if (pieCtx) {
       const existingPieChart = (Chart as any).getChart?.(pieCtx.id);
       if (existingPieChart) existingPieChart.destroy();
-
+  
       new Chart(pieCtx, {
         type: "pie",
         data: {
@@ -547,7 +635,7 @@ export default class ViewReport extends BaseController {
           datasets: [
             {
               data,
-              backgroundColor,
+              backgroundColor: backgroundColor,
             },
           ],
         },
@@ -558,14 +646,14 @@ export default class ViewReport extends BaseController {
             title: {
               display: true,
               text: "Job Status – Pie Chart",
-              font: {
-                size: 20, // chỉnh to lên (ví dụ: 20px)
-              },
+              font: { size: 20 },
             },
             legend: { position: "top" },
           },
         },
       });
+    } else {
+      console.error("pieChart canvas not found");
     }
   }
 }
