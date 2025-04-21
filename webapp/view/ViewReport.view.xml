@@ -167,10 +167,10 @@
               <!-- <Column id="colEndtime" width="10rem">
                 <Text id="colEndtimeHeader" text="End Time" />
               </Column> -->
-              <Column id="colAuthcknam" width="12rem">
+              <Column id="colAuthcknam" width="10rem">
                 <Text id="colAuthcknamHeader" text="Authcknam" />
               </Column>
-              <Column id="colDelay" width="12rem">
+              <Column id="colDelay" width="10rem">
                 <Text id="colDelayHeader" text="Delay" />
               </Column>
               <!-- <Column id="colStepcount" width="8rem">
