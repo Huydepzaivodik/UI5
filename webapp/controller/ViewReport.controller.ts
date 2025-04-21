@@ -9,8 +9,6 @@ import JSONModel from "sap/ui/model/json/JSONModel";
 
 
 //hehe
-//kimochi o o
-// u i a
 export default class ViewReport extends BaseController {
   public formatter = formatter;
 
