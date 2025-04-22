@@ -78,11 +78,11 @@ export default class ViewReport extends BaseController {
     if (oBinding) {
       const aFilters = sQuery
         ? [
-            new Filter("Jobname", FilterOperator.Contains, sQuery),
-            new Filter("Id", FilterOperator.Contains, sQuery),
-            new Filter("Status", FilterOperator.Contains, sQuery),
-            new Filter("Authcknam", FilterOperator.Contains, sQuery),
-          ]
+          new Filter("Jobname", FilterOperator.Contains, sQuery),
+          new Filter("Id", FilterOperator.Contains, sQuery),
+          new Filter("Status", FilterOperator.Contains, sQuery),
+          new Filter("Authcknam", FilterOperator.Contains, sQuery),
+        ]
         : [];
 
       oBinding.filter(
@@ -179,14 +179,14 @@ export default class ViewReport extends BaseController {
   public onIconTabSelect(oEvent: sap.ui.base.Event): void {
     const sSelectedKey = oEvent.getParameter("key");
     console.log("IconTabSelect called, key:", sSelectedKey);
-  
+
     // Lấy jobModel
     const oModel = this.getOwnerComponent()?.getModel("jobModel") as JSONModel;
     if (!oModel) {
       console.error("jobModel not found");
       return;
     }
-  
+
     // Xử lý tab biểu đồ (tab1, tab2)
     if (sSelectedKey === "tab1" || sSelectedKey === "tab2") {
       // Chỉ làm mới biểu đồ, không thay đổi bộ lọc hoặc /selectedTab
@@ -204,29 +204,29 @@ export default class ViewReport extends BaseController {
       }, 0);
       return;
     }
-  
+
     // Xử lý tab trạng thái (All, Scheduled, Ready, v.v.)
     oModel.setProperty("/selectedTab", sSelectedKey);
-  
+
     const oTable = this.byId("jobTable") as sap.m.Table;
     const oBinding = oTable.getBinding("items");
     if (!oBinding) {
       console.error("Table binding not found");
       return;
     }
-  
+
     // Áp dụng bộ lọc
     const aFilters = this._mFilters[sSelectedKey] || [];
     console.log("Applying filter for status:", sSelectedKey, "Filters:", aFilters);
     oBinding.filter(aFilters);
-  
+
     // Cập nhật tiêu đề động
     const oCounts = oModel.getProperty("/counts") || {};
     const iCount = sSelectedKey === "All" ? oCounts.All || 0 : oCounts[sSelectedKey] || 0;
     const oResourceBundle = this.getOwnerComponent()?.getModel("i18n")?.getResourceBundle();
     const sTitle = oResourceBundle?.getText("JobsReportTableTitle", [iCount]) || `Jobs (${iCount})`;
     this.getView().byId("jobTableToolbar").getContent()[0].setText(sTitle);
-  
+
     // Làm mới biểu đồ
     setTimeout(() => {
       const counts = oModel.getProperty("/counts") || {};
@@ -337,14 +337,14 @@ export default class ViewReport extends BaseController {
   public onChartTabSelect(oEvent: sap.ui.base.Event): void {
     const sKey = oEvent.getParameter("key"); // Lấy key từ sự kiện (tab1, tab2)
     console.log("Chart tab selected, key:", sKey);
-  
+
     // Lấy jobModel
     const oModel = this.getOwnerComponent()?.getModel("jobModel") as JSONModel;
     if (!oModel) {
       console.error("jobModel not found");
       return;
     }
-  
+
     // KHÔNG cập nhật /selectedTab hoặc bộ lọc để giữ nguyên trạng thái lọc hiện tại
     // Chỉ làm mới biểu đồ
     setTimeout(() => {
@@ -357,7 +357,7 @@ export default class ViewReport extends BaseController {
         counts.Running +
         counts.Canceled +
         counts.Finished;
-  
+
       // Gọi _renderCharts với counts và totalJobs
       this._renderCharts(counts, totalJobs);
     }, 0);
@@ -532,7 +532,7 @@ export default class ViewReport extends BaseController {
       console.error("Chart.js not found");
       return;
     }
-  
+
     // Kiểm tra và đăng ký chartjs-plugin-datalabels
     const ChartDataLabels = (window as any).ChartDataLabels;
     if (ChartDataLabels) {
@@ -541,7 +541,7 @@ export default class ViewReport extends BaseController {
     } else {
       console.warn("chartjs-plugin-datalabels is not loaded, datalabels will be disabled");
     }
-  
+
     const labels = [
       "Scheduled",
       "Released",
@@ -551,7 +551,7 @@ export default class ViewReport extends BaseController {
       "Canceled",
       "Finished",
     ];
-  
+
     const data = [
       counts.Scheduled || 0,
       counts.Released || 0,
@@ -561,27 +561,27 @@ export default class ViewReport extends BaseController {
       counts.Canceled || 0,
       counts.Finished || 0,
     ];
-  
+
     const totalData = labels.map(() => totalJobs);
-  
+
     const backgroundColor = [
-      "#3498db",
-      "#8e44ad",
-      "#27ae60",
-      "#f1c40f",
-      "#e67e22",
-      "#e74c3c",
-      "#2ecc71",
+      "#AAC4FF",
+      "#FF9D76",
+      "#FCDDB0",
+      "#FF9D76",
+      "#FCDDB0",
+      "#6E85B7",
+      "#68A7AD",
     ];
-  
-    const totalBackgroundColor = labels.map(() => "rgba(255, 105, 180, 1)");
-  
+
+    const totalBackgroundColor = labels.map(() => "#AAAAAA");
+
     // Bar Chart
     const barCtx = document.getElementById("barChart") as HTMLCanvasElement;
     if (barCtx) {
       const existingBarChart = (Chart as any).getChart?.(barCtx.id);
       if (existingBarChart) existingBarChart.destroy();
-  
+
       new Chart(barCtx, {
         type: "bar",
         data: {
@@ -619,21 +619,66 @@ export default class ViewReport extends BaseController {
     } else {
       console.error("barChart canvas not found");
     }
-  
+
     // Pie Chart
-    const pieCtx = document.getElementById("pieChart") as HTMLCanvasElement;
-    if (pieCtx) {
-      const existingPieChart = (Chart as any).getChart?.(pieCtx.id);
-      if (existingPieChart) existingPieChart.destroy();
-  
-      new Chart(pieCtx, {
-        type: "pie",
+    // Biểu đồ mới thay thế Pie Chart
+    const newChartCtx = document.getElementById("newChart") as HTMLCanvasElement;
+    if (newChartCtx) {
+      const existingNewChart = (Chart as any).getChart?.(newChartCtx.id);
+      if (existingNewChart) existingNewChart.destroy();
+
+      // Lấy dữ liệu từ counts và tính toán khung giờ
+      const endTime = new Date(); // Giả sử endTime là thời gian hiện tại
+      const startTime = new Date(endTime.getTime() - 24 * 60 * 60 * 1000); // 24 giờ trước
+      const timeLabels: string[] = [];
+      const delayCounts: number[] = [];
+      const delayDurations: number[] = [];
+      const delayTooltips: string[] = [];
+
+      // Giả lập dữ liệu (thay thế bằng dữ liệu thực tế từ counts)
+      for (let i = 0; i < 24; i++) {
+        const hour = new Date(startTime.getTime() + i * 60 * 60 * 1000);
+        const nextHour = new Date(hour.getTime() + 60 * 60 * 1000);
+        timeLabels.push(`${hour.getHours()}h - ${nextHour.getHours()}h`);
+
+        // Số lượng job bị delay trong khung giờ này
+        const delayCount = Math.floor(Math.random() * 10); // Thay bằng dữ liệu thực tế
+        delayCounts.push(delayCount);
+
+        // Tổng thời gian delay trong khung giờ này
+        const delayDuration = Math.floor(Math.random() * 1000); // Thay bằng dữ liệu thực tế
+        delayDurations.push(delayDuration);
+
+        // Tooltip: Tên job có thời gian delay lâu nhất
+        const maxDelayJob = `Job_${i + 1}`; // Thay bằng dữ liệu thực tế
+        const maxDelayTime = Math.floor(Math.random() * 500); // Thay bằng dữ liệu thực tế
+        delayTooltips.push(`${maxDelayJob}: ${maxDelayTime}s`);
+      }
+
+      // Tạo biểu đồ
+      new Chart(newChartCtx, {
+        type: "bar",
         data: {
-          labels,
+          labels: timeLabels,
           datasets: [
             {
-              data,
-              backgroundColor: backgroundColor,
+              type: "bar",
+              label: "Số lượng jobs bị delay",
+              data: delayCounts,
+              backgroundColor: "rgba(54, 162, 235, 0.6)",
+              borderColor: "rgba(54, 162, 235, 1)",
+              borderWidth: 1,
+              yAxisID: "y1",
+            },
+            {
+              type: "line",
+              label: "Thời gian delay (giây)",
+              data: delayDurations,
+              borderColor: "rgba(255, 99, 132, 1)",
+              backgroundColor: "rgba(255, 99, 132, 0.2)",
+              fill: false,
+              tension: 0.4,
+              yAxisID: "y2",
             },
           ],
         },
@@ -641,17 +686,53 @@ export default class ViewReport extends BaseController {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
+            tooltip: {
+              callbacks: {
+                label: function (context) {
+                  if (context.dataset.type === "line") {
+                    return delayTooltips[context.dataIndex];
+                  }
+                  return `${context.dataset.label}: ${context.raw}`;
+                },
+              },
+            },
             title: {
               display: true,
-              text: "Job Status – Pie Chart",
+              text: "Biểu đồ jobs bị delay trong 24 giờ gần nhất",
               font: { size: 20 },
             },
-            legend: { position: "top" },
+          },
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: "Khung giờ",
+              },
+            },
+            y1: {
+              type: "linear",
+              position: "left",
+              title: {
+                display: true,
+                text: "Số lượng jobs bị delay",
+              },
+            },
+            y2: {
+              type: "linear",
+              position: "right",
+              title: {
+                display: true,
+                text: "Thời gian delay (giây)",
+              },
+              grid: {
+                drawOnChartArea: false, // Không vẽ lưới trên trục y2
+              },
+            },
           },
         },
       });
     } else {
-      console.error("pieChart canvas not found");
+      console.error("newChart canvas not found");
     }
   }
 }

@@ -33,7 +33,7 @@
 
             <IconTabFilter key="tab2" text="Biểu đồ 2">
               <VBox>
-                <core:HTML content="&lt;canvas id='pieChart' width='100%' height='200'&gt;&lt;/canvas&gt;" />
+                <core:HTML content="&lt;canvas id='newChart' width='100%' height='200'&gt;&lt;/canvas&gt;" />
               </VBox>
             </IconTabFilter>
           </items>
