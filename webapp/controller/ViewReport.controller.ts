@@ -7,7 +7,6 @@ import Event from "sap/ui/base/Event"; // Import Event từ đúng module
 import { sap } from "sap/ui/core/library"; // Import sap từ đúng module
 import JSONModel from "sap/ui/model/json/JSONModel";
 
-
 //hehe
 export default class ViewReport extends BaseController {
   public formatter = formatter;
@@ -45,26 +44,65 @@ export default class ViewReport extends BaseController {
       },
       selectedTab: "All", // <-- thêm dòng này
       ZG3_ET_UI5_01Set: [],
+      currentPage: 1, // Trang hiện tại
+      pageSize: 100,  // Số bản ghi mỗi trang
+      totalPages: 0,  // Tổng số trang
     });
 
     this.getOwnerComponent()?.setModel(oJSONModel, "jobModel");
-    oModel.read("/ZG3_ET_UI5_01Set", {
-      success: (oData: { results: any[] }) => {
-        console.log("Data loaded successfully", oData.results);
 
-        // Gắn dữ liệu vào jobModel
-        const oJSONModel = this.getOwnerComponent()?.getModel(
-          "jobModel"
-        ) as sap.ui.model.json.JSONModel;
-        if (oJSONModel) {
-          oJSONModel.setProperty("/ZG3_ET_UI5_01Set", oData.results);
-        }
+    this.loadPage(1); // Tải trang đầu tiên
+    // oModel.read("/ZG3_ET_UI5_01Set", {
+    //   success: (oData: { results: any[] }) => {
+    //     console.log("Data loaded successfully", oData.results);
+
+    //     // Gắn dữ liệu vào jobModel
+    //     const oJSONModel = this.getOwnerComponent()?.getModel(
+    //       "jobModel"
+    //     ) as sap.ui.model.json.JSONModel;
+    //     if (oJSONModel) {
+    //       oJSONModel.setProperty("/ZG3_ET_UI5_01Set", oData.results);
+    //     }
+    //   },
+    //   error: (err: any) => {
+    //     console.error("Error loading data", err);
+    //   },
+    // });
+  }
+
+  private loadPage(iPage: number): void {
+    const oModel = this.getOwnerComponent()?.getModel() as sap.ui.model.odata.v2.ODataModel;
+    const oJSONModel = this.getOwnerComponent()?.getModel("jobModel") as sap.ui.model.json.JSONModel;
+    if (!oModel || !oJSONModel) {
+      console.error("Model not found");
+      return;
+    }
+  
+    const iPageSize = oJSONModel.getProperty("/pageSize") || 100;
+    const iSkip = (iPage - 1) * iPageSize; // Tính số bản ghi cần bỏ qua
+  
+    oModel.read("/ZG3_ET_UI5_01Set", {
+      urlParameters: {
+        "$top": iPageSize,
+        "$skip": iSkip,
+        "count": true
+      },
+      success: (oData: { results: any[]; __count?: string }) => {
+        console.log(`Page ${iPage} loaded successfully`, oData.results);
+
+        oJSONModel.setProperty("/ZG3_ET_UI5_01Set", oData.results);
+        oJSONModel.setProperty("/currentPage", iPage);
+        const totalRecords = parseInt(oData.__count || "0", 10);
+        console.log("===Total records:====", totalRecords); // In tổng số bản ghi ra console
+        oJSONModel.setProperty("/counts/All", totalRecords);
+        oJSONModel.setProperty("/totalPages", Math.ceil(totalRecords / iPageSize));
       },
       error: (err: any) => {
-        console.error("Error loading data", err);
+        console.error(`Error loading page ${iPage}`, err);
       },
     });
   }
+
 
   public onSearch(
     oEvent: Parameters<SearchField["attachLiveChange"]>[0]
@@ -78,11 +116,11 @@ export default class ViewReport extends BaseController {
     if (oBinding) {
       const aFilters = sQuery
         ? [
-          new Filter("Jobname", FilterOperator.Contains, sQuery),
-          new Filter("Id", FilterOperator.Contains, sQuery),
-          new Filter("Status", FilterOperator.Contains, sQuery),
-          new Filter("Authcknam", FilterOperator.Contains, sQuery),
-        ]
+            new Filter("Jobname", FilterOperator.Contains, sQuery),
+            new Filter("Id", FilterOperator.Contains, sQuery),
+            new Filter("Status", FilterOperator.Contains, sQuery),
+            new Filter("Authcknam", FilterOperator.Contains, sQuery),
+          ]
         : [];
 
       oBinding.filter(
@@ -217,14 +255,24 @@ export default class ViewReport extends BaseController {
 
     // Áp dụng bộ lọc
     const aFilters = this._mFilters[sSelectedKey] || [];
-    console.log("Applying filter for status:", sSelectedKey, "Filters:", aFilters);
+    console.log(
+      "Applying filter for status:",
+      sSelectedKey,
+      "Filters:",
+      aFilters
+    );
     oBinding.filter(aFilters);
 
     // Cập nhật tiêu đề động
     const oCounts = oModel.getProperty("/counts") || {};
-    const iCount = sSelectedKey === "All" ? oCounts.All || 0 : oCounts[sSelectedKey] || 0;
-    const oResourceBundle = this.getOwnerComponent()?.getModel("i18n")?.getResourceBundle();
-    const sTitle = oResourceBundle?.getText("JobsReportTableTitle", [iCount]) || `Jobs (${iCount})`;
+    const iCount =
+      sSelectedKey === "All" ? oCounts.All || 0 : oCounts[sSelectedKey] || 0;
+    const oResourceBundle = this.getOwnerComponent()
+      ?.getModel("i18n")
+      ?.getResourceBundle();
+    const sTitle =
+      oResourceBundle?.getText("JobsReportTableTitle", [iCount]) ||
+      `Jobs (${iCount})`;
     this.getView().byId("jobTableToolbar").getContent()[0].setText(sTitle);
 
     // Làm mới biểu đồ
@@ -363,7 +411,6 @@ export default class ViewReport extends BaseController {
     }, 0);
   }
 
-
   private _chartKeyMap: Record<string, string> = {
     tab1: "Ready",
     tab2: "Scheduled",
@@ -371,9 +418,6 @@ export default class ViewReport extends BaseController {
     tab4: "Active",
     // Thêm các ánh xạ khác nếu cần
   };
-
-
-
 
   public onStatusTabSelect(oEvent: sap.ui.base.Event): void {
     const sKey = oEvent.getParameter("key");
@@ -526,7 +570,10 @@ export default class ViewReport extends BaseController {
   }
 
   //
-  private _renderCharts(counts: Record<string, number>, totalJobs: number): void {
+  private _renderCharts(
+    counts: Record<string, number>,
+    totalJobs: number
+  ): void {
     const Chart = (window as any).Chart;
     if (!Chart) {
       console.error("Chart.js not found");
@@ -539,7 +586,9 @@ export default class ViewReport extends BaseController {
       Chart.register(ChartDataLabels);
       console.log("chartjs-plugin-datalabels registered successfully");
     } else {
-      console.warn("chartjs-plugin-datalabels is not loaded, datalabels will be disabled");
+      console.warn(
+        "chartjs-plugin-datalabels is not loaded, datalabels will be disabled"
+      );
     }
 
     const labels = [
@@ -622,37 +671,131 @@ export default class ViewReport extends BaseController {
 
     // Pie Chart
     // Biểu đồ mới thay thế Pie Chart
-    const newChartCtx = document.getElementById("newChart") as HTMLCanvasElement;
+    const newChartCtx = document.getElementById(
+      "newChart"
+    ) as HTMLCanvasElement;
     if (newChartCtx) {
       const existingNewChart = (Chart as any).getChart?.(newChartCtx.id);
       if (existingNewChart) existingNewChart.destroy();
 
       // Lấy dữ liệu từ counts và tính toán khung giờ
-      const endTime = new Date(); // Giả sử endTime là thời gian hiện tại
-      const startTime = new Date(endTime.getTime() - 24 * 60 * 60 * 1000); // 24 giờ trước
+      // const endTime = new Date(); // Giả sử endTime là thời gian hiện tại
+      // const startTime = new Date(endTime.getTime() - 24 * 60 * 60 * 1000); // 24 giờ trước
       const timeLabels: string[] = [];
       const delayCounts: number[] = [];
       const delayDurations: number[] = [];
       const delayTooltips: string[] = [];
 
-      // Giả lập dữ liệu (thay thế bằng dữ liệu thực tế từ counts)
-      for (let i = 0; i < 24; i++) {
-        const hour = new Date(startTime.getTime() + i * 60 * 60 * 1000);
-        const nextHour = new Date(hour.getTime() + 60 * 60 * 1000);
-        timeLabels.push(`${hour.getHours()}h - ${nextHour.getHours()}h`);
+      const oModel = this.getOwnerComponent()?.getModel(
+        "jobModel"
+      ) as sap.ui.model.json.JSONModel;
+      const aJobs = oModel.getProperty("/ZG3_ET_UI5_01Set") || [];
 
+      // // Giả lập dữ liệu (thay thế bằng dữ liệu thực tế từ counts)
+      // for (let i = 0; i < 24; i++) {
+      //   const hour = new Date(startTime.getTime() + i * 60 * 60 * 1000);
+      //   const nextHour = new Date(hour.getTime() + 60 * 60 * 1000);
+      //   timeLabels.push(`${hour.getHours()}h - ${nextHour.getHours()}h`);
+
+      //   // Lọc các job có thời gian chạy trong khoảng hour - nextHour
+      //   const filteredJobs = aJobs.filter((job: any) => {
+      //     const jobStartTime = new Date(
+      //       `${job.Strtdate}T${job.Strttime || "00:00:00"}`
+      //     );
+      //     return (
+      //       jobStartTime >= hour &&
+      //       jobStartTime < nextHour &&
+      //       jobStartTime.toDateString() === hour.toDateString()
+      //     );
+      //   });
+
+      //   // Số lượng job bị delay trong khung giờ này
+      //   const delayCount = filteredJobs.length;
+      //   delayCounts.push(delayCount);
+
+      //   console.log("Filtered Jobs:", filteredJobs); // In ra danh sách job đã lọc
+
+      //   // Tổng thời gian delay trong khung giờ này
+      //   const delayDuration = filteredJobs.reduce((total: number, job: any) => {
+      //     return total + (parseInt(job.Delay, 10) || 0); // Cộng dồn giá trị Delay, đảm bảo chuyển thành số nguyên
+      //   }, 0);
+      //   delayDurations.push(delayDuration);
+
+      //   // Tooltip: Tên job có thời gian delay lâu nhất
+      //   const maxDelayJob = `Job_${i + 1}`; // Thay bằng dữ liệu thực tế
+      //   const maxDelayTime = Math.floor(Math.random() * 500); // Thay bằng dữ liệu thực tế
+      //   delayTooltips.push(`${maxDelayJob}: ${maxDelayTime}s`);
+      // }
+
+      //Sua lai code
+
+      const latestJob = aJobs.reduce((latest: any, job: any) => {
+        const jobStartTime = new Date(
+          `${job.Strtdate}T${job.Strttime || "00:00:00"}`
+        );
+        return jobStartTime >
+          new Date(`${latest.Strtdate}T${latest.Strttime || "00:00:00"}`)
+          ? job
+          : latest;
+      }, aJobs[0]);
+
+      // Thời gian chạy muộn nhất
+      const latestExecutionTime = new Date(
+        `${latestJob.Strtdate}T${latestJob.Strttime || "00:00:00"}`
+      );
+      console.log("Latest Execution Time:", latestExecutionTime); // In ra thời gian chạy muộn nhất
+
+      // Tính thời điểm bắt đầu xét (muộn nhất - 24 giờ)
+      const startTime = new Date(
+        latestExecutionTime.getTime() - 24 * 60 * 60 * 1000
+      );
+      console.log("Start Time:", startTime); // In ra thời điểm bắt đầu xét
+
+      for (
+        let currentTime = startTime;
+        currentTime < latestExecutionTime;
+        currentTime = new Date(currentTime.getTime() + 60 * 60 * 1000)
+      ) {
+        const nextHour = new Date(currentTime.getTime() + 60 * 60 * 1000);
+        timeLabels.push(`${currentTime.getHours()}h - ${nextHour.getHours()}h`);
+
+        // Lọc các job có thời gian chạy trong khoảng currentTime - nextHour và Delay > 0
+        const filteredJobs = aJobs.filter((job: any) => {
+          const jobStartTime = new Date(
+            `${job.Strtdate}T${job.Strttime || "00:00:00"}`
+          );
+          return (
+            jobStartTime >= currentTime &&
+            jobStartTime < nextHour &&
+            parseInt(job.Delay, 10) > 0
+          );
+        });
         // Số lượng job bị delay trong khung giờ này
-        const delayCount = Math.floor(Math.random() * 10); // Thay bằng dữ liệu thực tế
-        delayCounts.push(delayCount);
+        delayCounts.push(filteredJobs.length);
 
         // Tổng thời gian delay trong khung giờ này
-        const delayDuration = Math.floor(Math.random() * 1000); // Thay bằng dữ liệu thực tế
+        const delayDuration = filteredJobs.reduce((total: number, job: any) => {
+          return total + (parseInt(job.Delay, 10) || 0); // Cộng dồn giá trị Delay, đảm bảo chuyển thành số nguyên
+        }, 0);
         delayDurations.push(delayDuration);
 
-        // Tooltip: Tên job có thời gian delay lâu nhất
-        const maxDelayJob = `Job_${i + 1}`; // Thay bằng dữ liệu thực tế
-        const maxDelayTime = Math.floor(Math.random() * 500); // Thay bằng dữ liệu thực tế
-        delayTooltips.push(`${maxDelayJob}: ${maxDelayTime}s`);
+        // Tìm job có thời gian delay lâu nhất trong khung giờ này
+        const maxDelayJob = filteredJobs.reduce(
+          (maxJob: any, job: any) => {
+            return parseInt(job.Delay, 10) > parseInt(maxJob.Delay, 10)
+              ? job
+              : maxJob;
+          },
+          { Delay: "0", Jobname: "Unknown Job" }
+        ); // Khởi tạo maxJob với Delay = "0" và Jobname mặc định
+
+        // Lấy thông tin job có delay lâu nhất
+        const maxDelayTime = parseInt(maxDelayJob.Delay, 10) || 0;
+        const maxDelayJobName = maxDelayJob.Jobname || "Unknown Job";
+
+        // Thêm tooltip vào danh sách
+        delayTooltips.push(`${maxDelayJobName}: ${maxDelayTime}s`);
+        ;
       }
 
       // Tạo biểu đồ

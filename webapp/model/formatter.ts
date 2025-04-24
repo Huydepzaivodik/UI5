@@ -1,4 +1,9 @@
 export default {
+  
+  formatPageInfo(currentPage: number, totalPages: number): string {
+    return `Page ${currentPage} of ${totalPages}`;
+  },
+
   formatTime: function (oTime: any): string {
     if (!oTime) return "N/A";
 
@@ -90,5 +95,7 @@ export default {
     }
   }
 
+
+  
 };
 

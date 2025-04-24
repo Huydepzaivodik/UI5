@@ -1,271 +1,386 @@
-<mvc:View xmlns:core="sap.ui.core"
-  controllerName="bjmproject.controller.ViewReport"
-	xmlns="sap.m"
-	xmlns:mvc="sap.ui.core.mvc"
-	xmlns:semantic="sap.f.semantic">
-
-  <semantic:SemanticPage
-    id="page"
-    headerPinnable="true"
-    toggleHeaderOnTitleClick="false"
-    showFooter="true"
+<mvc:View
+    xmlns:core="sap.ui.core"
+    controllerName="bjmproject.controller.ViewReport"
+    xmlns="sap.m"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns:semantic="sap.f.semantic"
+>
+    <semantic:SemanticPage
+        id="page"
+        headerPinnable="true"
+        toggleHeaderOnTitleClick="false"
+        showFooter="true"
     >
+        <semantic:titleHeading>
+            <HBox alignItems="Center">
+                <Image
+                    src="https://www.sap.com/dam/application/shared/logos/sap-logo-svg.svg"
+                    width="75px"
+                />
+                <Title text="{i18n>title}" />
+            </HBox>
+        </semantic:titleHeading>
 
-    <semantic:titleHeading>
-      <HBox alignItems="Center">
-        <Image src="https://www.sap.com/dam/application/shared/logos/sap-logo-svg.svg" width="75px" />
-        <Title text="{i18n>title}" />
-      </HBox>
-    </semantic:titleHeading>
+        <semantic:headerContent>
+            <VBox
+                id="chartContainer"
+                class="sapUiSmallMargin"
+            >
+                <IconTabBar
+                    id="chartTabBar"
+                    select="onIconTabSelect"
+                    expandable="false"
+                >
+                    <items>
+                        <IconTabFilter
+                            key="tab1"
+                            text="Biểu đồ 1"
+                        >
+                            <VBox>
+                                <core:HTML
+                                    content="&lt;canvas id='barChart' width='100%' height='200'&gt;&lt;/canvas&gt;"
+                                />
+                            </VBox>
+                        </IconTabFilter>
 
-    <semantic:headerContent>
+                        <IconTabFilter
+                            key="tab2"
+                            text="Biểu đồ 2"
+                        >
+                            <VBox>
+                                <core:HTML
+                                    content="&lt;canvas id='newChart' width='100%' height='200'&gt;&lt;/canvas&gt;"
+                                />
+                            </VBox>
+                        </IconTabFilter>
+                    </items>
+                </IconTabBar>
+            </VBox>
 
-      
-    <VBox id="chartContainer" class="sapUiSmallMargin">
+            <IconTabBar
+                id="iconTabBar"
+                select="onIconTabSelect"
+                expandable="false"
+            >
+                <items>
+                    <IconTabFilter
+                        id="allTab"
+                        key="All"
+                        showAll="true"
+                        count="{jobModel>/counts/All}"
+                        text="{i18n>FilterJobsAll}"
+                    />
+                    <IconTabSeparator />
+                    <IconTabFilter
+                        id="scheduledTab"
+                        key="Scheduled"
+                        icon="sap-icon://appointment"
+                        count="{jobModel>/counts/Scheduled}"
+                        text="Scheduled"
+                    />
 
-        <IconTabBar id="chartTabBar" select="onIconTabSelect" expandable="false">
-          <items>
-            <IconTabFilter key="tab1" text="Biểu đồ 1">
-              <VBox>
-                <core:HTML content="&lt;canvas id='barChart' width='100%' height='200'&gt;&lt;/canvas&gt;" />
-              </VBox>
-            </IconTabFilter>
+                    <IconTabFilter
+                        id="releasedTab"
+                        key="Released"
+                        icon="sap-icon://paper-plane"
+                        count="{jobModel>/counts/Released}"
+                        text="Released"
+                    >
+                        <customData>
+                            <core:CustomData
+                                key="iconcolor"
+                                value="{= ${jobModel>/counts/Released} > 0 ? 'green' : 'gray' }"
+                                writeToDom="true"
+                            />
+                        </customData>
+                    </IconTabFilter>
 
-            <IconTabFilter key="tab2" text="Biểu đồ 2">
-              <VBox>
-                <core:HTML content="&lt;canvas id='newChart' width='100%' height='200'&gt;&lt;/canvas&gt;" />
-              </VBox>
-            </IconTabFilter>
-          </items>
-        </IconTabBar>
+                    <IconTabFilter
+                        id="readyTab"
+                        key="Ready"
+                        icon="sap-icon://accept"
+                        count="{jobModel>/counts/Ready}"
+                        text="Ready"
+                    />
 
-      </VBox>
+                    <IconTabFilter
+                        id="activeTab"
+                        key="Active"
+                        icon="sap-icon://activity-items"
+                        count="{jobModel>/counts/Active}"
+                        text="Active"
+                    />
 
+                    <IconTabFilter
+                        id="runningTab"
+                        key="Running"
+                        icon="sap-icon://process"
+                        count="{jobModel>/counts/Running}"
+                        text="Running"
+                    />
 
-      <IconTabBar
-        id="iconTabBar"
-        select="onIconTabSelect"
-        expandable="false">
-        <items>
-          <IconTabFilter
-            id="allTab"
-            key="All"
-            showAll="true"
-            count="{jobModel>/counts/All}"
-            text="{i18n>FilterJobsAll}" />
-        <IconTabSeparator />
-        <IconTabFilter
-            id="scheduledTab"
-            key="Scheduled"
-            icon="sap-icon://appointment"
-            count="{jobModel>/counts/Scheduled}"
-            text="Scheduled" />
+                    <IconTabFilter
+                        id="CanceledTab"
+                        key="Canceled"
+                        icon="sap-icon://decline"
+                        count="{jobModel>/counts/Canceled}"
+                        text="Canceled"
+                    />
 
-        <IconTabFilter
-            id="releasedTab"
-            key="Released"
-            icon="sap-icon://paper-plane"
-            count="{jobModel>/counts/Released}"
-            text="Released">
-            <customData>
-              <core:CustomData
-                key="iconcolor"
-                value="{= ${jobModel>/counts/Released} > 0 ? 'green' : 'gray' }"
-                writeToDom="true" />
-            </customData>
-          </IconTabFilter>
-
-        <IconTabFilter
-            id="readyTab"
-            key="Ready"
-            icon="sap-icon://accept"
-            count="{jobModel>/counts/Ready}"
-            text="Ready" />
-
-        <IconTabFilter
-            id="activeTab"
-            key="Active"
-            icon="sap-icon://activity-items"
-            count="{jobModel>/counts/Active}"
-            text="Active" />
-
-        <IconTabFilter
-            id="runningTab"
-            key="Running"
-            icon="sap-icon://process"
-            count="{jobModel>/counts/Running}"
-            text="Running" />
-
-        <IconTabFilter
-            id="CanceledTab"
-            key="Canceled"
-            icon="sap-icon://decline"
-            count="{jobModel>/counts/Canceled}"
-            text="Canceled" />
-
-        <IconTabFilter
-            id="finishedTab"
-            key="Finished"
-            icon="sap-icon://complete"
-            count="{jobModel>/counts/Finished}"
-            text="Finished" />
-          </items>
-        <content>
-          <Table
-            id="jobTable"
-            items="{jobModel>/ZG3_ET_UI5_01Set}"
-            updateFinished="onUpdateFinished"
-            class="sapUiSizeCompact">
-            <headerToolbar>
-              <Toolbar id="jobTableToolbar">
-                <HBox justifyContent="Start" alignItems="Center" width="100%"> <!-- Align title to the right of the logo -->
-                  <Title
-                    text="{
+                    <IconTabFilter
+                        id="finishedTab"
+                        key="Finished"
+                        icon="sap-icon://complete"
+                        count="{jobModel>/counts/Finished}"
+                        text="Finished"
+                    />
+                </items>
+                <content>
+                    <Table
+                        id="jobTable"
+                        items="{jobModel>/ZG3_ET_UI5_01Set}"
+                        updateFinished="onUpdateFinished"
+                        class="sapUiSizeCompact"
+                    >
+                        <headerToolbar>
+                            <Toolbar id="jobTableToolbar">
+                                <HBox
+                                    justifyContent="Start"
+                                    alignItems="Center"
+                                    width="100%"
+                                >
+                                    <!-- Align title to the right of the logo -->
+                                    <Title
+                                        text="{
                       parts: [
                         { path: 'jobModel>/selectedTab' },
                         { path: 'jobModel>/counts' }
                       ],
                       formatter: '.formatter.dynamicTitle'
                     }"
-                    level="H2">
-                    <layoutData>
-                      <FlexItemData styleClass="sapUiTinyMarginBegin" />
-                    </layoutData>
-                  </Title>
-                </HBox>
-                <ToolbarSpacer />
-                <SearchField
-                  id="searchField" 
-                  placeholder="Search..."
-                  liveChange="onSearch" />
-                <Button text="Export" icon="sap-icon://download" press="onExport" />
-              </Toolbar>
-            </headerToolbar>
+                                        level="H2"
+                                    >
+                                        <layoutData>
+                                            <FlexItemData
+                                                styleClass="sapUiTinyMarginBegin"
+                                            />
+                                        </layoutData>
+                                    </Title>
+                                </HBox>
+                                <ToolbarSpacer />
+                                <SearchField
+                                    id="searchField"
+                                    placeholder="Search..."
+                                    liveChange="onSearch"
+                                />
+                                <Button
+                                    text="Export"
+                                    icon="sap-icon://download"
+                                    press="onExport"
+                                />
+                            </Toolbar>
+                        </headerToolbar>
 
-            <columns>
-              <Column id="colId" width="8rem">
-                <Text id="colIdHeader" text="ID" />
-              </Column>
-              <Column id="colJobname" width="20rem">
-                <Text id="colJobnameHeader" text="Jobname" />
-              </Column>
-              <Column id="colJobcount" width="8rem">
-                <Text id="colJobcountHeader" text="Jobcount" />
-              </Column>
-              <Column id="colStatus" width="10rem">
-                <Text id="colStatusHeader" text="Status" />
-              </Column>
-              <Column id="colStrtdate" width="10rem">
-                <Text id="colStrtdateHeader" text="Start Date" />
-              </Column>
-              <!-- <Column id="colStrttime" width="10rem">
+                        <columns>
+                            <Column
+                                id="colId"
+                                width="8rem"
+                            >
+                                <Text
+                                    id="colIdHeader"
+                                    text="ID"
+                                />
+                            </Column>
+                            <Column
+                                id="colJobname"
+                                width="20rem"
+                            >
+                                <Text
+                                    id="colJobnameHeader"
+                                    text="Jobname"
+                                />
+                            </Column>
+                            <Column
+                                id="colJobcount"
+                                width="8rem"
+                            >
+                                <Text
+                                    id="colJobcountHeader"
+                                    text="Jobcount"
+                                />
+                            </Column>
+                            <Column
+                                id="colStatus"
+                                width="10rem"
+                            >
+                                <Text
+                                    id="colStatusHeader"
+                                    text="Status"
+                                />
+                            </Column>
+                            <Column
+                                id="colStrtdate"
+                                width="10rem"
+                            >
+                                <Text
+                                    id="colStrtdateHeader"
+                                    text="Start Date"
+                                />
+                            </Column>
+                            <!-- <Column id="colStrttime" width="10rem">
                 <Text id="colStrttimeHeader" text="Start Time" />
               </Column> -->
-              <Column id="colEnddate" width="10rem">
-                <Text id="colEnddateHeader" text="End Date" />
-              </Column>
-              <!-- <Column id="colEndtime" width="10rem">
+                            <Column
+                                id="colEnddate"
+                                width="10rem"
+                            >
+                                <Text
+                                    id="colEnddateHeader"
+                                    text="End Date"
+                                />
+                            </Column>
+                            <!-- <Column id="colEndtime" width="10rem">
                 <Text id="colEndtimeHeader" text="End Time" />
               </Column> -->
-              <Column id="colAuthcknam" width="8rem">
-                <Text id="colAuthcknamHeader" text="Authcknam" />
-              </Column>
-              <Column id="colDelay" width="10rem">
-                <Text id="colDelayHeader" text="Delay" />
-              </Column>
-              <!-- <Column id="colStepcount" width="8rem">
+                            <Column
+                                id="colAuthcknam"
+                                width="8rem"
+                            >
+                                <Text
+                                    id="colAuthcknamHeader"
+                                    text="Authcknam"
+                                />
+                            </Column>
+                            <Column
+                                id="colDelay"
+                                width="10rem"
+                            >
+                                <Text
+                                    id="colDelayHeader"
+                                    text="Delay"
+                                />
+                            </Column>
+                            <!-- <Column id="colStepcount" width="8rem">
                 <Text id="colStepcountHeader" text="Stepcount" />
               </Column> -->
-              <!-- <Column id="colProgname" width="12rem">
+                            <!-- <Column id="colProgname" width="12rem">
                 <Text id="colPrognameHeader" text="Progname" />
               </Column> -->
-              <!-- <Column id="colVariant" width="12rem">
+                            <!-- <Column id="colVariant" width="12rem">
                 <Text id="colVariantHeader" text="Variant" />
               </Column> -->
-              <!-- <Column id="colErrorMsg" width="15rem">
+                            <!-- <Column id="colErrorMsg" width="15rem">
                 <Text id="colErrorMsgHeader" text="Error Message" />
               </Column> -->
-              <!-- <Column id="colDuration" width="8rem">
+                            <!-- <Column id="colDuration" width="8rem">
                 <Text id="colDurationHeader" text="Duration" />
               </Column> -->
-              <!-- <Column id="colCustomLog" width="15rem">
+                            <!-- <Column id="colCustomLog" width="15rem">
                 <Text id="colCustomLogHeader" text="Custom Log" />
               </Column> -->
-              <!-- <Column id="colAlertSent" width="10rem">
+                            <!-- <Column id="colAlertSent" width="10rem">
                 <Text id="colAlertSentHeader" text="Alert Sent" />
               </Column> -->
-              <!-- <Column id="colRetryCount" width="8rem">
+                            <!-- <Column id="colRetryCount" width="8rem">
                 <Text id="colRetryCountHeader" text="Retry Count" />
               </Column> -->
-              <!-- <Column id="colLogDate" width="10rem">
+                            <!-- <Column id="colLogDate" width="10rem">
                 <Text id="colLogDateHeader" text="Log Date" />
               </Column> -->
-              <!-- <Column id="colLogTime" width="10rem">
+                            <!-- <Column id="colLogTime" width="10rem">
                 <Text id="colLogTimeHeader" text="Log Time" />
               </Column> -->
-              <!-- <Column id="colCreateBy" width="12rem">
+                            <!-- <Column id="colCreateBy" width="12rem">
                 <Text id="colCreateByHeader" text="Created By" />
               </Column> -->
-              <!-- <Column id="colCreateOn" width="10rem">
+                            <!-- <Column id="colCreateOn" width="10rem">
                 <Text id="colCreateOnHeader" text="Created On" />
               </Column> -->
-              <!-- <Column id="colCreateAt" width="10rem">
+                            <!-- <Column id="colCreateAt" width="10rem">
                 <Text id="colCreateAtHeader" text="Created At" />
               </Column> -->
-              <!-- <Column id="colChangeBy" width="12rem">
+                            <!-- <Column id="colChangeBy" width="12rem">
                 <Text id="colChangeByHeader" text="Changed By" />
               </Column> -->
-              <!-- <Column id="colChangeOn" width="10rem">
+                            <!-- <Column id="colChangeOn" width="10rem">
                 <Text id="colChangeOnHeader" text="Changed On" />
               </Column>
               <Column id="colChangeAt" width="10rem">
                 <Text id="colChangeAtHeader" text="Changed At" />
               </Column> -->
-            </columns>
+                        </columns>
 
-            <items>
-              <ColumnListItem press=".onPress" type="Navigation" id="jobRow">
-                <cells>
-                  <Text id="idText" text="{jobModel>Id}" />
-                  <Text id="jobnameText" text="{jobModel>Jobname}" />
-                  <Text id="jobcountText" text="{jobModel>Jobcount}" />
-                  <!-- <Text id="statusText" text="{jobModel>Status}" /> -->
-                  <HBox alignItems="Center" justifyContent="Start">
-                    <core:Icon
-                      src="{
+                        <items>
+                            <ColumnListItem
+                                press=".onPress"
+                                type="Navigation"
+                                id="jobRow"
+                            >
+                                <cells>
+                                    <Text
+                                        id="idText"
+                                        text="{jobModel>Id}"
+                                    />
+                                    <Text
+                                        id="jobnameText"
+                                        text="{jobModel>Jobname}"
+                                    />
+                                    <Text
+                                        id="jobcountText"
+                                        text="{jobModel>Jobcount}"
+                                    />
+                                    <!-- <Text id="statusText" text="{jobModel>Status}" /> -->
+                                    <HBox
+                                        alignItems="Center"
+                                        justifyContent="Start"
+                                    >
+                                        <core:Icon
+                                            src="{
                         path: 'jobModel>Status',
                         formatter: '.formatter.getStatusIcon'
                       }"
-                      color="{
+                                            color="{
                         path: 'jobModel>Status',
                         formatter: '.formatter.getStatusColor'
                       }"
-                      size="1.5rem"
-                    />
-                    <Text
-                      text="{
+                                            size="1.5rem"
+                                        />
+                                        <Text
+                                            text="{
                         path: 'jobModel>Status',
                         formatter: '.formatter.getStatusText'
                       }"
-                      class="sapUiTinyMarginBegin"
-                    />
-                  </HBox>
-                  <Text id="strtdateText" text="{path: 'jobModel>Strtdate'}" />
-                  <!-- , formatter: '.formatter.formatDate' -->
-                  <!-- , formatter: '.formatter.formatDate' -->
-                  <!-- <Text id="strtTimeText" text="{jobModel>Strttime}" /> -->
-                  <Text id="enddateText" text="{path: 'jobModel>Enddate'}" />
-                  <!-- , formatter: '.formatter.formatDate' -->
-                  <!-- , formatter: '.formatter.formatDate' -->
-                  <!-- <Text id="endTimeText" text="{jobModel>Endtime}" /> -->
-                  <Text id="authcknamText" text="{jobModel>Authcknam}" />
-                  <Text id="delayText" text="{jobModel>Delay}" />
-                  <!-- <Text id="stepcountText" text="{jobModel>Stepcount}" />
+                                            class="sapUiTinyMarginBegin"
+                                        />
+                                    </HBox>
+                                    <Text
+                                        id="strtdateText"
+                                        text="{path: 'jobModel>Strtdate'}"
+                                    />
+                                    <!-- , formatter: '.formatter.formatDate' -->
+                                    <!-- , formatter: '.formatter.formatDate' -->
+                                    <!-- <Text id="strtTimeText" text="{jobModel>Strttime}" /> -->
+                                    <Text
+                                        id="enddateText"
+                                        text="{path: 'jobModel>Enddate'}"
+                                    />
+                                    <!-- , formatter: '.formatter.formatDate' -->
+                                    <!-- , formatter: '.formatter.formatDate' -->
+                                    <!-- <Text id="endTimeText" text="{jobModel>Endtime}" /> -->
+                                    <Text
+                                        id="authcknamText"
+                                        text="{jobModel>Authcknam}"
+                                    />
+                                    <Text
+                                        id="delayText"
+                                        text="{jobModel>Delay}"
+                                    />
+                                    <!-- <Text id="stepcountText" text="{jobModel>Stepcount}" />
                   <Text id="prognameText" text="{jobModel>Progname}" />
                   <Text id="variantText" text="{jobModel>Variant}" />
                   <Text id="errorMsgText" text="{jobModel>ErrorMsg}" /> -->
-                  <!-- <Text id="durationText" text="{jobModel>Duration}" /> -->
-                  <!-- <Text id="customLogText" text="{jobModel>CustomLog}" />
+                                    <!-- <Text id="durationText" text="{jobModel>Duration}" /> -->
+                                    <!-- <Text id="customLogText" text="{jobModel>CustomLog}" />
                   <Text id="alertSentText" text="{jobModel>AlertSent}" />
                   <Text id="retryCountText" text="{jobModel>RetryCount}" />
                    <Text id="logDateText" text="{jobModel>LogDate}" />
@@ -275,21 +390,47 @@
                   <Text id="createAtText" text="{jobModel>CreateAt}" />
                   <Text id="changeByText" text="{jobModel>ChangeBy}" />
                   <Text id="changeOnText" text="{jobModel>ChangeOn}" />
-                  <Text id="changeAtText" text="{jobModel>ChangeAt}" /> --> 
-                </cells>
-              </ColumnListItem>
-            </items>
-          </Table>
-        </content>
-      </IconTabBar>
-      
-    </semantic:headerContent>
+                  <Text id="changeAtText" text="{jobModel>ChangeAt}" /> -->
+                                </cells>
+                            </ColumnListItem>
+                        </items>
+                    </Table>
+                    <HBox
+                        id="paginationContainer"
+                        justifyContent="Center"
+                        class="sapUiSmallMarginTop"
+                    >
+                        <Button
+                            id="prevPage"
+                            text="Previous"
+                            press=".onPreviousPage"
+                            
+                        />
+                        <HBox
+                            id="pageButtons"
+                            items="{jobModel>/pageButtons}"
+                        >
+                            <Button
+                                text="{jobModel>pageNumber}"
+                                press=".onPageChange"
+                                type="{= ${jobModel>pageNumber} === ${jobModel>/currentPage} ? 'Emphasized' : 'Default' }"
+                            />
+                        </HBox>
+                        <Button
+                            id="nextPage"
+                            text="Next"
+                            press=".onNextPage"
+                          />
+                    </HBox>
+                </content>
+            </IconTabBar>
+        </semantic:headerContent>
 
-    <semantic:sendEmailAction>
-      <semantic:SendEmailAction
-        id="shareEmail"
-        press="onShareEmailPress" />
-    </semantic:sendEmailAction>
-
-  </semantic:SemanticPage>
+        <semantic:sendEmailAction>
+            <semantic:SendEmailAction
+                id="shareEmail"
+                press="onShareEmailPress"
+            />
+        </semantic:sendEmailAction>
+    </semantic:SemanticPage>
 </mvc:View>
