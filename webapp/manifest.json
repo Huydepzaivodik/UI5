@@ -23,6 +23,13 @@
         "settings": {
           "odataVersion": "2.0"
         }
+      },
+      "serviceC3": {
+        "uri": "/sap/opu/odata/SAP/ZG3_SEGW_DB_UI5_C3_SRV/",
+        "type": "OData",
+        "settings": {
+          "odataVersion": "2.0"
+        }
       }
     }
   },
@@ -62,6 +69,13 @@
       },
       "serviceC1Model": {
         "dataSource": "serviceC1",
+        "settings": {
+          "defaultBindingMode": "TwoWay",
+          "useBatch": true
+        }
+      },
+      "serviceC3Model": {
+        "dataSource": "serviceC3",
         "settings": {
           "defaultBindingMode": "TwoWay",
           "useBatch": true
