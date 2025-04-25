@@ -489,202 +489,109 @@ private renderNewChart(counts: Record<string, number>): void {
     }
   }
 
-  //
-  private _renderCharts(counts: Record<string, number>, totalJobs: number): void {
-    const Chart = (window as any).Chart;
-    if (!Chart) {
-      console.error("Chart.js not found");
-      return;
-    }
 
-    // Kiểm tra và đăng ký chartjs-plugin-datalabels
-    const ChartDataLabels = (window as any).ChartDataLabels;
-    if (ChartDataLabels) {
-      Chart.register(ChartDataLabels);
-      console.log("chartjs-plugin-datalabels registered successfully");
-    } else {
-      console.warn("chartjs-plugin-datalabels is not loaded, datalabels will be disabled");
-    }
 
-    const labels = [
-      "Scheduled",
-      "Released",
-      "Ready",
-      "Active",
-      "Running",
-      "Canceled",
-      "Finished",
-    ];
+  private _newChartInstance: any;
 
-    const data = [
-      counts.Scheduled || 0,
-      counts.Released || 0,
-      counts.Ready || 0,
-      counts.Active || 0,
-      counts.Running || 0,
-      counts.Canceled || 0,
-      counts.Finished || 0,
-    ];
+private _renderCharts(counts: Record<string, number>, totalJobs: number): void {
+  const Chart = (window as any).Chart;
+  if (!Chart) {
+    console.error("Chart.js not found");
+    return;
+  }
 
-    const totalData = labels.map(() => totalJobs);
+  // Kiểm tra và đăng ký chartjs-plugin-datalabels
+  const ChartDataLabels = (window as any).ChartDataLabels;
+  if (ChartDataLabels) {
+    Chart.register(ChartDataLabels);
+    console.log("chartjs-plugin-datalabels registered successfully");
+  } else {
+    console.warn("chartjs-plugin-datalabels is not loaded, datalabels will be disabled");
+  }
 
-    const backgroundColor = [
-      "#AAC4FF",
-      "#FF9D76",
-      "#FCDDB0",
-      "#FF9D76",
-      "#FCDDB0",
-      "#6E85B7",
-      "#68A7AD",
-    ];
+  const labels = ["Scheduled", "Released", "Ready", "Active", "Running", "Canceled", "Finished"];
+  const data = [
+    counts.Scheduled || 0,
+    counts.Released || 0,
+    counts.Ready || 0,
+    counts.Active || 0,
+    counts.Running || 0,
+    counts.Canceled || 0,
+    counts.Finished || 0,
+  ];
+  const totalData = labels.map(() => totalJobs);
+  const backgroundColor = [
+    "#AAC4FF", "#FF9D76", "#FCDDB0", "#FF9D76", "#FCDDB0", "#6E85B7", "#68A7AD"
+  ];
+  const totalBackgroundColor = labels.map(() => "#AAAAAA");
 
-    const totalBackgroundColor = labels.map(() => "#AAAAAA");
+  const barCtx = document.getElementById("barChart") as HTMLCanvasElement;
+  if (barCtx) {
+    const existingBarChart = (Chart as any).getChart?.(barCtx.id);
+    if (existingBarChart) existingBarChart.destroy();
 
-    // Bar Chart
-    const barCtx = document.getElementById("barChart") as HTMLCanvasElement;
-    if (barCtx) {
-      const existingBarChart = (Chart as any).getChart?.(barCtx.id);
-      if (existingBarChart) existingBarChart.destroy();
-
-      new Chart(barCtx, {
-        type: "bar",
-        data: {
-          labels,
-          datasets: [
-            {
-              label: "Jobs by Status",
-              data: data,
-              backgroundColor: backgroundColor,
-            },
-            {
-              label: "Total Jobs",
-              data: totalData,
-              backgroundColor: totalBackgroundColor,
-            },
-          ],
+    new Chart(barCtx, {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [
+          { label: "Jobs by Status", data: data, backgroundColor: backgroundColor },
+          { label: "Total Jobs", data: totalData, backgroundColor: totalBackgroundColor },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          title: { display: true, text: "Job Status – Bar Chart", font: { size: 20 } },
+          legend: { display: false, position: "top" },
         },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            title: {
-              display: true,
-              text: "Job Status – Bar Chart",
-              font: { size: 20 },
-            },
-            legend: { display: false, position: "top" },
-          },
-          scales: {
-            x: { stacked: false },
-            y: { beginAtZero: true },
-          },
+        scales: {
+          x: { stacked: false },
+          y: { beginAtZero: true },
         },
-      });
-    } else {
-      console.error("barChart canvas not found");
-    }
+      },
+    });
+  } else {
+    console.error("barChart canvas not found");
+  }
 
-    // Biểu đồ thứ 2 - Sửa theo yêu cầu mới
-    const newChartCtx = document.getElementById("newChart") as HTMLCanvasElement;
-    if (newChartCtx) {
-      const existingNewChart = (Chart as any).getChart?.(newChartCtx.id);
-      if (existingNewChart) existingNewChart.destroy();
+  // === BIỂU ĐỒ TỪ ODATA C3 ===
+  const newChartCtx = document.getElementById("newChart") as HTMLCanvasElement;
+  if (!newChartCtx) {
+    console.error("Không tìm thấy canvas newChart");
+    return;
+  }
 
-      // Lấy data từ model
-      const oModel = this.getOwnerComponent()?.getModel("jobModel") as JSONModel;
-      const aJobs: any[] = oModel.getProperty("/ZG3_ET_UI5_01Set") || [];
+  if (this._newChartInstance) {
+    this._newChartInstance.destroy();
+  }
 
-      // Tìm job gần nhất có Delay > 0
+  const oServiceC3Model = this.getOwnerComponent()?.getModel("serviceC3Model") as sap.ui.model.odata.v2.ODataModel;
+  if (!oServiceC3Model) {
+    console.error("Model serviceC3Model không tồn tại");
+    return;
+  }
 
-      let latestJob: any = null;
-      aJobs.forEach((job) => {
-        if (job.Delay > 0) {
-          const jobStart = this._parseJobDateTime(job.Strtdate, job.Strttime);
-          console.log("Job Start Time:", jobStart); // In ra thời gian bắt đầu job
-          if (!jobStart) return;
+  oServiceC3Model.read("/ZG3_ET_UI5_C3Set", {
+    success: (oData: { results: any[] }) => {
+      console.log("✅ OData C3 Results:", oData.results);
+      const aData = oData.results || [];
 
-          if (!latestJob || jobStart > latestJob.startTime) {
-            latestJob = {
-              startTime: jobStart,
-              jobData: job
-            };
-          }
-        }
-      });
+      const timeLabels = aData.map(d => d.Timeframe.trim());
+      const delayCounts = aData.map(d => parseInt(d.Jobdelaycountbytimeframe.trim(), 10));
+      const delayDurations = aData.map(d => parseInt(d.Sumdelaycountbytimeframe.trim(), 10));
+      // const delayTooltips = aData.map(d =>
+      //   `Job: ${d.Jobnamebytooltip?.trim() || "N/A"} | Delay: ${d.Sumdelaycountbytimeframe.trim()}s | Job Count: ${d.Jobdelaycountbytimeframe.trim()}`
+      // );
+      const tooltipDelayCounts = aData.map(d => parseInt(d.Jobdelaycountbytimeframe.trim(), 10)); // Bar
+      const tooltipJobCounts   = aData.map(d => d.Jobcountfortooltip?.trim() || "");              // Line
+      const tooltipJobNames = aData.map(d => d.Jobnamebytooltip?.trim() || "N/A");               // Line
+      const tooltipMaxDelays   = aData.map(d => d.Maxdelaytimebytimeframe?.trim() || "");         // Line
+      
 
-      // Xác định startTime và endTime dựa trên job gần nhất
-      let endTime: Date, startTime: Date;
-      if (latestJob) {
-        endTime = latestJob.startTime;
-        startTime = new Date(endTime.getTime() - 24 * 60 * 60 * 1000);
-      } else {
-        // Nếu không có job nào, mặc định dùng thời gian hiện tại
-        endTime = new Date();
-        startTime = new Date(endTime.getTime() - 24 * 60 * 60 * 1000);
-      }
 
-      // Tạo 24 khung giờ
-      const timeSlots: Array<{
-        start: Date;
-        end: Date;
-        jobs: any[];
-        totalDelay: number;
-        maxDelayJob: any;
-      }> = [];
-
-      // Điều chỉnh để khung đầu tiên bắt đầu từ startTime chính xác
-      for (let i = 0; i < 24; i++) {
-        const slotStart = new Date(startTime.getTime() + i * 60 * 60 * 1000);
-        const slotEnd = new Date(slotStart.getTime() + 60 * 60 * 1000);
-        timeSlots.push({
-          start: slotStart,
-          end: slotEnd,
-          jobs: [],
-          totalDelay: 0,
-          maxDelayJob: null,
-        });
-      }
-
-      // Lọc và phân loại job vào các khung
-      aJobs.forEach((job) => {
-        const delay = parseInt(job.Delay, 10); // Chuyển đổi Delay từ chuỗi sang số
-        if (isNaN(delay) || delay <= 0) return; // Bỏ qua nếu Delay không hợp lệ hoặc <= 0
-
-        const jobStart = this._parseJobDateTime(job.Strtdate, job.Strttime);
-        if (!jobStart) return;
-
-        // Chỉ xử lý job trong khoảng [startTime, endTime]
-        if (jobStart < startTime || jobStart >= endTime) return;
-
-        const slot = timeSlots.find(
-          (s) => jobStart >= s.start && jobStart < s.end
-        );
-        if (slot) {
-          slot.jobs.push(job);
-          slot.totalDelay += delay; // Sử dụng giá trị delay đã chuyển đổi
-
-          if (!slot.maxDelayJob || delay > slot.maxDelayJob.Delay) {
-            slot.maxDelayJob = job;
-          }
-        }
-      });
-      // Tạo labels cho khung giờ
-      const timeLabels = timeSlots.map((s) => {
-        const startHour = s.start.getHours().toString().padStart(2, '0');
-        const endHour = s.end.getHours().toString().padStart(2, '0');
-        return `${startHour}h - ${endHour}h`;
-      });
-
-      const delayCounts = timeSlots.map(s => s.jobs.length);
-      const delayDurations = timeSlots.map(s => s.totalDelay);
-      const delayTooltips = timeSlots.map(s =>
-        s.maxDelayJob
-          ? `${s.maxDelayJob.Jobname}: ${parseInt(s.maxDelayJob.Delay, 10)}s`
-          : 'No delayed jobs'
-      );
-
-      // Tạo biểu đồ
-      new Chart(newChartCtx, {
+      this._newChartInstance = new Chart(newChartCtx, {
         type: "bar",
         data: {
           labels: timeLabels,
@@ -700,7 +607,7 @@ private renderNewChart(counts: Record<string, number>): void {
             },
             {
               type: "line",
-              label: "Thời gian delay (giây)",
+              label: "Tổng thời gian delay (giây)",
               data: delayDurations,
               borderColor: "rgba(255, 99, 132, 1)",
               backgroundColor: "rgba(255, 99, 132, 0.2)",
@@ -717,84 +624,75 @@ private renderNewChart(counts: Record<string, number>): void {
             tooltip: {
               callbacks: {
                 label: function (context) {
-                  if (context.dataset.type === "line") {
-                    return delayTooltips[context.dataIndex];
+                  if (context.dataset.label === "Số lượng jobs bị delay") {
+                    return `Số lượng job delay: ${tooltipDelayCounts[context.dataIndex]}`;
+                  } else if (context.dataset.label === "Tổng thời gian delay (giây)") {
+                    return `Job count: ${tooltipJobCounts[context.dataIndex]} | Job name: ${tooltipJobNames[context.dataIndex]} | Max delay: ${tooltipMaxDelays[context.dataIndex]}s`;
                   }
-                  return `${context.dataset.label}: ${context.raw}`;
-                },
-              },
+                  return context.raw;
+                }
+              }
             },
             title: {
               display: true,
-              text: "Biểu đồ jobs bị delay trong 24 giờ gần nhất",
+              text: "Biểu đồ jobs bị delay trong 24 giờ gần nhất (từ OData C3)",
               font: { size: 20 },
             },
           },
           scales: {
             x: {
-              title: {
-                display: true,
-                text: "Khung giờ",
-              },
+              title: { display: true, text: "Khung giờ" },
             },
             y1: {
               type: "linear",
               position: "left",
-              title: {
-                display: true,
-                text: "Số lượng jobs bị delay",
-              },
+              title: { display: true, text: "Số lượng jobs bị delay" },
             },
             y2: {
               type: "linear",
               position: "right",
-              title: {
-                display: true,
-                text: "Thời gian delay (giây)",
-              },
-              grid: {
-                drawOnChartArea: false, // Không vẽ lưới trên trục y2
-              },
+              title: { display: true, text: "Tổng thời gian delay (giây)" },
+              grid: { drawOnChartArea: false },
             },
           },
         },
       });
-    } else {
-      console.error("newChart canvas not found");
-    }
-  }
+    },
+    error: (err) => {
+      console.error("Lỗi khi đọc dữ liệu từ OData C3:", err);
+    },
+  });
+}
 
-  // Hàm hỗ trợ chuyển đổi datetime
-  private _parseJobDateTime(dateStr: string, timeStr: string | null): Date | null {
-    try {
-      // Kiểm tra định dạng ngày (YYYY-MM-DD)
-      const dateParts = dateStr.split("-");
-      if (dateParts.length !== 3) {
-        console.error("Invalid date format:", dateStr);
-        return null;
-      }
-      const year = parseInt(dateParts[0], 10);
-      const month = parseInt(dateParts[1], 10) - 1; // Month is 0-based
-      const day = parseInt(dateParts[2], 10);
-
-      // Kiểm tra định dạng giờ (HH:mm:ss)
-      let hours = 0, minutes = 0, seconds = 0;
-      if (timeStr) {
-        const timeParts = timeStr.split(":");
-        if (timeParts.length !== 3) {
-          console.error("Invalid time format:", timeStr);
-          return null;
-        }
-        hours = parseInt(timeParts[0], 10);
-        minutes = parseInt(timeParts[1], 10);
-        seconds = parseInt(timeParts[2], 10);
-      }
-
-      // Tạo Date object theo LOCAL TIME
-      return new Date(year, month, day, hours, minutes, seconds);
-    } catch (e) {
-      console.error("Error parsing job datetime:", e, { dateStr, timeStr });
+private _parseJobDateTime(dateStr: string, timeStr: string | null): Date | null {
+  try {
+    const dateParts = dateStr.split("-");
+    if (dateParts.length !== 3) {
+      console.error("Invalid date format:", dateStr);
       return null;
     }
+    const year = parseInt(dateParts[0], 10);
+    const month = parseInt(dateParts[1], 10) - 1;
+    const day = parseInt(dateParts[2], 10);
+
+    let hours = 0, minutes = 0, seconds = 0;
+    if (timeStr) {
+      const timeParts = timeStr.split(":");
+      if (timeParts.length !== 3) {
+        console.error("Invalid time format:", timeStr);
+        return null;
+      }
+      hours = parseInt(timeParts[0], 10);
+      minutes = parseInt(timeParts[1], 10);
+      seconds = parseInt(timeParts[2], 10);
+    }
+
+    return new Date(year, month, day, hours, minutes, seconds);
+  } catch (e) {
+    console.error("Error parsing job datetime:", e, { dateStr, timeStr });
+    return null;
   }
+}
+
+// 👇 ĐỪNG QUÊN ĐÓNG CLASS
 }
