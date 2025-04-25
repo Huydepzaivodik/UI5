@@ -118,11 +118,16 @@
             text="Finished" />
           </items>
         <content>
+        <VBox>
           <Table
             id="jobTable"
-            items="{jobModel>/ZG3_ET_UI5_01Set}"
+            items="{jobModel>/pagedData}"
             updateFinished="onUpdateFinished"
-            class="sapUiSizeCompact">
+            class="sapUiSizeCompact"
+            growing="true"
+            growingScrollToLoad="true">
+            <!-- Container cho các nút phân trang -->
+          <!-- <HBox id="paginationContainer" justifyContent="Center" class="sapUiSmallMargin"/> -->
             <headerToolbar>
               <Toolbar id="jobTableToolbar">
                 <HBox justifyContent="Start" alignItems="Center" width="100%"> <!-- Align title to the right of the logo -->
@@ -165,69 +170,15 @@
               <Column id="colStrtdate" width="10rem">
                 <Text id="colStrtdateHeader" text="Start Date" />
               </Column>
-              <!-- <Column id="colStrttime" width="10rem">
-                <Text id="colStrttimeHeader" text="Start Time" />
-              </Column> -->
               <Column id="colEnddate" width="10rem">
                 <Text id="colEnddateHeader" text="End Date" />
               </Column>
-              <!-- <Column id="colEndtime" width="10rem">
-                <Text id="colEndtimeHeader" text="End Time" />
-              </Column> -->
               <Column id="colAuthcknam" width="8rem">
                 <Text id="colAuthcknamHeader" text="Authcknam" />
               </Column>
               <Column id="colDelay" width="10rem">
                 <Text id="colDelayHeader" text="Delay" />
-              </Column>
-              <!-- <Column id="colStepcount" width="8rem">
-                <Text id="colStepcountHeader" text="Stepcount" />
-              </Column> -->
-              <!-- <Column id="colProgname" width="12rem">
-                <Text id="colPrognameHeader" text="Progname" />
-              </Column> -->
-              <!-- <Column id="colVariant" width="12rem">
-                <Text id="colVariantHeader" text="Variant" />
-              </Column> -->
-              <!-- <Column id="colErrorMsg" width="15rem">
-                <Text id="colErrorMsgHeader" text="Error Message" />
-              </Column> -->
-              <!-- <Column id="colDuration" width="8rem">
-                <Text id="colDurationHeader" text="Duration" />
-              </Column> -->
-              <!-- <Column id="colCustomLog" width="15rem">
-                <Text id="colCustomLogHeader" text="Custom Log" />
-              </Column> -->
-              <!-- <Column id="colAlertSent" width="10rem">
-                <Text id="colAlertSentHeader" text="Alert Sent" />
-              </Column> -->
-              <!-- <Column id="colRetryCount" width="8rem">
-                <Text id="colRetryCountHeader" text="Retry Count" />
-              </Column> -->
-              <!-- <Column id="colLogDate" width="10rem">
-                <Text id="colLogDateHeader" text="Log Date" />
-              </Column> -->
-              <!-- <Column id="colLogTime" width="10rem">
-                <Text id="colLogTimeHeader" text="Log Time" />
-              </Column> -->
-              <!-- <Column id="colCreateBy" width="12rem">
-                <Text id="colCreateByHeader" text="Created By" />
-              </Column> -->
-              <!-- <Column id="colCreateOn" width="10rem">
-                <Text id="colCreateOnHeader" text="Created On" />
-              </Column> -->
-              <!-- <Column id="colCreateAt" width="10rem">
-                <Text id="colCreateAtHeader" text="Created At" />
-              </Column> -->
-              <!-- <Column id="colChangeBy" width="12rem">
-                <Text id="colChangeByHeader" text="Changed By" />
-              </Column> -->
-              <!-- <Column id="colChangeOn" width="10rem">
-                <Text id="colChangeOnHeader" text="Changed On" />
-              </Column>
-              <Column id="colChangeAt" width="10rem">
-                <Text id="colChangeAtHeader" text="Changed At" />
-              </Column> -->
+              </Column>             
             </columns>
 
             <items>
@@ -258,35 +209,49 @@
                     />
                   </HBox>
                   <Text id="strtdateText" text="{path: 'jobModel>Strtdate'}" />
-                  <!-- , formatter: '.formatter.formatDate' -->
-                  <!-- , formatter: '.formatter.formatDate' -->
-                  <!-- <Text id="strtTimeText" text="{jobModel>Strttime}" /> -->
                   <Text id="enddateText" text="{path: 'jobModel>Enddate'}" />
-                  <!-- , formatter: '.formatter.formatDate' -->
-                  <!-- , formatter: '.formatter.formatDate' -->
-                  <!-- <Text id="endTimeText" text="{jobModel>Endtime}" /> -->
                   <Text id="authcknamText" text="{jobModel>Authcknam}" />
                   <Text id="delayText" text="{jobModel>Delay}" />
-                  <!-- <Text id="stepcountText" text="{jobModel>Stepcount}" />
-                  <Text id="prognameText" text="{jobModel>Progname}" />
-                  <Text id="variantText" text="{jobModel>Variant}" />
-                  <Text id="errorMsgText" text="{jobModel>ErrorMsg}" /> -->
-                  <!-- <Text id="durationText" text="{jobModel>Duration}" /> -->
-                  <!-- <Text id="customLogText" text="{jobModel>CustomLog}" />
-                  <Text id="alertSentText" text="{jobModel>AlertSent}" />
-                  <Text id="retryCountText" text="{jobModel>RetryCount}" />
-                   <Text id="logDateText" text="{jobModel>LogDate}" />
-                  <Text id="logTimeText" text="{jobModel>LogTime}" />
-                  <Text id="createByText" text="{jobModel>CreateBy}" />
-                  <Text id="createOnText" text="{jobModel>CreateOn}" />
-                  <Text id="createAtText" text="{jobModel>CreateAt}" />
-                  <Text id="changeByText" text="{jobModel>ChangeBy}" />
-                  <Text id="changeOnText" text="{jobModel>ChangeOn}" />
-                  <Text id="changeAtText" text="{jobModel>ChangeAt}" /> --> 
                 </cells>
               </ColumnListItem>
             </items>
           </Table>
+
+          <!-- Thanh phân trang -->
+        <OverflowToolbar class="sapUiTinyMarginTop">
+          <ToolbarSpacer/>
+          <HBox justifyContent="Center" alignItems="Center">
+          <Button
+            icon="sap-icon://slim-arrow-left"
+            enabled="{= ${jobModel>/currentPage} > 1 }"
+            press=".onPreviousPage"
+            class="sapUiTinyMarginEnd"/>
+      
+         <Text 
+            text="Page {jobModel>/currentPage} of {jobModel>/totalPages}"
+            class="sapUiTinyMarginBeginEnd"/>
+
+          <Button
+            icon="sap-icon://slim-arrow-right"
+            enabled="{= ${jobModel>/totalPages} > ${jobModel>/currentPage} }"
+            press=".onNextPage"
+            class="sapUiTinyMarginEnd"/>
+      
+            <!-- ... Giữ nguyên nút Previous/Next ... -->
+          </HBox>
+          <ToolbarSpacer/>
+        </OverflowToolbar>
+
+        <!-- Nút "Gửi báo cáo" đặt ở đây -->
+        <OverflowToolbar class="sapUiTinyMarginTop">
+          <ToolbarSpacer/>
+          <Button
+            icon="sap-icon://email"
+            text="Gửi báo cáo"
+            press="onShareEmailPress"/>
+          <ToolbarSpacer/>
+        </OverflowToolbar>
+      </VBox>
         </content>
       </IconTabBar>
       
@@ -297,6 +262,10 @@
         id="shareEmail"
         press="onShareEmailPress" />
     </semantic:sendEmailAction>
+
+
+
+
 
   </semantic:SemanticPage>
 </mvc:View>
