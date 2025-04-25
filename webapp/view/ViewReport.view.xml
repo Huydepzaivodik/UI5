@@ -21,27 +21,25 @@
             </HBox>
         </semantic:titleHeading>
 
-        <semantic:headerContent>
-            <VBox
-                id="chartContainer"
-                class="sapUiSmallMargin"
-            >
-                <IconTabBar
-                    id="chartTabBar"
-                    select="onIconTabSelect"
-                    expandable="false"
-                >
-                    <items>
-                        <IconTabFilter
-                            key="tab1"
-                            text="Biểu đồ 1"
-                        >
-                            <VBox>
-                                <core:HTML
-                                    content="&lt;canvas id='barChart' width='100%' height='200'&gt;&lt;/canvas&gt;"
-                                />
-                            </VBox>
-                        </IconTabFilter>
+    <semantic:headerContent>
+
+      
+    <VBox id="chartContainer" class="sapUiSmallMargin">
+
+        <IconTabBar id="chartTabBar" select="onIconTabSelect" selectedKey="tab1" expandable="false">
+          <items>
+            <IconTabFilter key="tab1" text="Biểu đồ 1">
+              <VBox>
+                <core:HTML content="&lt;canvas id='barChart' width='100%' height='200'&gt;&lt;/canvas&gt;" />
+              </VBox>
+            </IconTabFilter>
+
+            <IconTabFilter key="tab3" text="Biểu đồ OData mới">
+              <VBox>
+            <core:HTML content="&lt;canvas id='newBarChart' width='100%' height='200'&gt;&lt;/canvas&gt;" />
+              </VBox>             
+            </IconTabFilter>
+
 
                         <IconTabFilter
                             key="tab2"
