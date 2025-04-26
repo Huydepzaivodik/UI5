@@ -448,7 +448,7 @@ private renderNewChart(counts: Record<string, number>): void {
       oCounts.Finished;
 
     console.log("Total Jobs:", totalJobs); // In tổng số jobs ra console
-
+    console.log("aData:", aData); // In counts ra console
     // Cập nhật lại counts trong jobModel
     oViewModel.setProperty("/counts", oCounts);
     console.log("Updated counts:", oCounts);
