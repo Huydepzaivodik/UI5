@@ -23,22 +23,22 @@
       
     <VBox id="chartContainer" class="sapUiSmallMargin">
 
-        <IconTabBar id="chartTabBar" select="onIconTabSelect" selectedKey="tab1" expandable="false">
+        <IconTabBar id="chartTabBar" select="onChartTabSelect" selectedKey="tab1" expandable="false">
           <items>
-            <IconTabFilter key="tab1" text="Biểu đồ 1">
+            <!-- <IconTabFilter key="tab1" text="Biểu đồ 1">
               <VBox>
                 <core:HTML content="&lt;canvas id='barChart' width='100%' height='200'&gt;&lt;/canvas&gt;" />
               </VBox>
-            </IconTabFilter>
+            </IconTabFilter> -->
 
-            <IconTabFilter key="tab3" text="Biểu đồ OData mới">
+            <IconTabFilter key="tab3" text="Job by status">
               <VBox>
             <core:HTML content="&lt;canvas id='newBarChart' width='100%' height='200'&gt;&lt;/canvas&gt;" />
               </VBox>             
             </IconTabFilter>
 
 
-            <IconTabFilter key="tab2" text="Biểu đồ 2">
+            <IconTabFilter key="tab2" text="Delay by time frame">
               <VBox>
                 <core:HTML content="&lt;canvas id='newChart' width='100%' height='200'&gt;&lt;/canvas&gt;" />
               </VBox>
@@ -51,33 +51,33 @@
 
       <IconTabBar
         id="iconTabBar"
-        select="onIconTabSelect"
+        select="onStatusTabSelect"
         expandable="false">
         <items>
           <IconTabFilter
             id="allTab"
             key="All"
             showAll="true"
-            count="{jobModel>/counts/All}"
+            count="{jobModel>/newCounts/All}"
             text="{i18n>FilterJobsAll}" />
         <IconTabSeparator />
         <IconTabFilter
             id="scheduledTab"
             key="Scheduled"
             icon="sap-icon://appointment"
-            count="{jobModel>/counts/Scheduled}"
+            count="{jobModel>/newCounts/P}"
             text="Scheduled" />
 
         <IconTabFilter
             id="releasedTab"
             key="Released"
             icon="sap-icon://paper-plane"
-            count="{jobModel>/counts/Released}"
+            count="{jobModel>/newCounts/S}"
             text="Released">
             <customData>
               <core:CustomData
                 key="iconcolor"
-                value="{= ${jobModel>/counts/Released} > 0 ? 'green' : 'gray' }"
+                value="{= ${jobModel>/newCounts/S} > 0 ? 'green' : 'gray' }"
                 writeToDom="true" />
             </customData>
           </IconTabFilter>
@@ -86,35 +86,35 @@
             id="readyTab"
             key="Ready"
             icon="sap-icon://accept"
-            count="{jobModel>/counts/Ready}"
+            count="{jobModel>/newCounts/Y}"
             text="Ready" />
 
         <IconTabFilter
             id="activeTab"
             key="Active"
             icon="sap-icon://activity-items"
-            count="{jobModel>/counts/Active}"
+            count="{jobModel>/newCounts/Z}"
             text="Active" />
 
         <IconTabFilter
             id="runningTab"
             key="Running"
             icon="sap-icon://process"
-            count="{jobModel>/counts/Running}"
+            count="{jobModel>/newCounts/R}"
             text="Running" />
 
         <IconTabFilter
             id="CanceledTab"
             key="Canceled"
             icon="sap-icon://decline"
-            count="{jobModel>/counts/Canceled}"
+            count="{jobModel>/newCounts/A}"
             text="Canceled" />
 
         <IconTabFilter
             id="finishedTab"
             key="Finished"
             icon="sap-icon://complete"
-            count="{jobModel>/counts/Finished}"
+            count="{jobModel>/newCounts/F}"
             text="Finished" />
           </items>
         <content>
@@ -135,7 +135,7 @@
                     text="{
                       parts: [
                         { path: 'jobModel>/selectedTab' },
-                        { path: 'jobModel>/counts' }
+                        { path: 'jobModel>/newCounts' }
                       ],
                       formatter: '.formatter.dynamicTitle'
                     }"
@@ -150,7 +150,7 @@
                   id="searchField" 
                   placeholder="Search..."
                   liveChange="onSearch" />
-                <Button text="Export" icon="sap-icon://download" press="onExport" />
+                <!-- <Button text="Export" icon="sap-icon://download" press="onExport" /> -->
               </Toolbar>
             </headerToolbar>
 
@@ -243,25 +243,25 @@
         </OverflowToolbar>
 
         <!-- Nút "Gửi báo cáo" đặt ở đây -->
-        <OverflowToolbar class="sapUiTinyMarginTop">
+        <!-- <OverflowToolbar class="sapUiTinyMarginTop">
           <ToolbarSpacer/>
           <Button
             icon="sap-icon://email"
             text="Gửi báo cáo"
             press="onShareEmailPress"/>
           <ToolbarSpacer/>
-        </OverflowToolbar>
+        </OverflowToolbar> -->
       </VBox>
         </content>
       </IconTabBar>
       
     </semantic:headerContent>
 
-    <semantic:sendEmailAction>
+    <!-- <semantic:sendEmailAction>
       <semantic:SendEmailAction
         id="shareEmail"
         press="onShareEmailPress" />
-    </semantic:sendEmailAction>
+    </semantic:sendEmailAction> -->
 
 
 
