@@ -27,9 +27,24 @@ export default {
     return `${day}/${month}/${year}`;
   },
 
-  dynamicTitle: function (key: string, counts: any): string {
-    const total = counts?.[key] ?? 0;
-    return `Jobs: ${key} (${total})`;
+  dynamicTitle: function(selectedTab, counts) {
+    if (!counts || !selectedTab) return "";
+  
+    const keyToStatus = {
+      Scheduled: "P",
+      Released: "S",
+      Ready: "Y",
+      Active: "Z",
+      Running: "R",
+      Canceled: "A",
+      Finished: "F",
+      All: "All"
+    };
+  
+    const statusKey = keyToStatus[selectedTab] || selectedTab;
+    const count = counts[statusKey] || 0;
+  
+    return `Jobs (${count})`;
   },
 
   getStatusIcon: function (sStatus: string): string {

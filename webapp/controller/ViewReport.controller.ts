@@ -10,97 +10,87 @@ import JSONModel from "sap/ui/model/json/JSONModel";
 //hehe
 export default class ViewReport extends BaseController {
   public formatter = formatter;
+  // private _rowsPerPage = 100;
+  private _rowsPerPage = 50;
+  private _totalJobCount = 0;
+  private _currentPage = 1;
+
+  private _convertTabKeyToStatus(tabKey: string): string | undefined {
+    const mapping: Record<string, string> = {
+      Scheduled: "P",
+      Released: "S",
+      Ready: "Y",
+      Active: "Z",
+      Running: "R",
+      Canceled: "A",
+      Finished: "F",
+    };
+    return mapping[tabKey];
+  }
+  
+
 
   public onInit(): void {
-    // 1. Khởi tạo jobModel
-    const oJSONModel = new JSONModel({
-        counts: { 
-            All: 0, 
-            Scheduled: 0, 
-            Released: 0, 
-            Ready: 0, 
-            Active: 0, 
-            Running: 0, 
-            Canceled: 0, 
-            Finished: 0 
-        },
-        newCounts: {}, // Thêm property cho dữ liệu mới
-        selectedTab: "All",
-        ZG3_ET_UI5_01Set: []
-    });
-    this.getOwnerComponent()?.setModel(oJSONModel, "jobModel");
-
+    // 1. Khởi tạo jobModel với currentPage và totalPages
+  const oJSONModel = new JSONModel({
+    counts: {
+      All: 0,
+      Scheduled: 0,
+      Released: 0,
+      Ready: 0,
+      Active: 0,
+      Running: 0,
+      Canceled: 0,
+      Finished: 0,
+    },
+    newCounts: {},
+    selectedTab: "All",
+    ZG3_ET_UI5_01Set: [],
+    pagedData: [],
+    currentPage: 1, // Thêm trường này
+    totalPages: 0   // Thêm trường này
+  });
+  this.getOwnerComponent()?.setModel(oJSONModel, "jobModel");
+  
     // 2. Khởi tạo bộ lọc
-    this._mFilters = {
-        All: [],
-        Scheduled: [new Filter("Status", FilterOperator.EQ, "P")],
-        Released: [new Filter("Status", FilterOperator.EQ, "S")],
-        Ready: [new Filter("Status", FilterOperator.EQ, "Y")],
-        Active: [new Filter("Status", FilterOperator.EQ, "Z")],
-        Running: [new Filter("Status", FilterOperator.EQ, "R")],
-        Canceled: [new Filter("Status", FilterOperator.EQ, "A")],
-        Finished: [new Filter("Status", FilterOperator.EQ, "F")],
-    };
-
-    // 3. Load data từ OData CŨ (mainService)
+    // this._mFilters = {
+    //   All: [],
+    //   Scheduled: [new Filter("Status", FilterOperator.EQ, "P")],
+    //   Released: [new Filter("Status", FilterOperator.EQ, "S")],
+    //   Ready: [new Filter("Status", FilterOperator.EQ, "Y")],
+    //   Active: [new Filter("Status", FilterOperator.EQ, "Z")],
+    //   Running: [new Filter("Status", FilterOperator.EQ, "R")],
+    //   Canceled: [new Filter("Status", FilterOperator.EQ, "A")],
+    //   Finished: [new Filter("Status", FilterOperator.EQ, "F")],
+    // };
+  
+    // 3. Lấy tổng số job để tính số trang
     const oMainModel = this.getOwnerComponent()?.getModel() as sap.ui.model.odata.v2.ODataModel;
     if (oMainModel) {
-        oMainModel.read("/ZG3_ET_UI5_01Set", {
-            success: (oData: { results: any[] }) => {
-                oJSONModel.setProperty("/ZG3_ET_UI5_01Set", oData.results);
-            },
-            error: (err: any) => console.error("Lỗi load OData cũ:", err)
-        });
+      oMainModel.read("/ZG3_ET_UI5_01Set/$count", {
+        success: (oData: any) => {
+          oJSONModel.setProperty("/pagedData", oData.results);
+          this._totalJobCount = parseInt(oData, 10);
+          this._loadPage(1); // Quan trọng: Sau khi lấy count -> load luôn trang 1
+        },
+        error: (err) => console.error("Lỗi lấy tổng job:", err)
+      });
     }
-
-    // 4. Load data từ OData MỚI (serviceC1Model)
+  
+    // 4. Load dữ liệu từ serviceC1Model (cho chart)
     const oServiceC1Model = this.getOwnerComponent()?.getModel("serviceC1Model") as sap.ui.model.odata.v2.ODataModel;
     if (oServiceC1Model) {
-        oServiceC1Model.read("/ZG3_ET_UI5_C1Set", {
-            success: (oData: { results: Array<{ Status: string; Jobcount: number }> }) => {
-                const newCounts = this.processNewChartData(oData.results);
-                oJSONModel.setProperty("/newCounts", newCounts);
-                this.renderNewChart(newCounts);
-            },
-            error: (err: any) => console.error("Lỗi load OData mới:", err)
-        });
+      oServiceC1Model.read("/ZG3_ET_UI5_C1Set", {
+        success: (oData: { results: Array<{ Status: string; Jobcount: number }> }) => {
+          const newCounts = this.processNewChartData(oData.results);
+          oJSONModel.setProperty("/newCounts", newCounts);
+          this.renderNewChart(newCounts);
+        },
+        error: (err) => console.error("Lỗi load OData mới:", err)
+      });
     }
-}
-
-
-// Thêm hàm xử lý dữ liệu mới
-private processNewChartData(data: Array<{ Status: string; Jobcount: number }>): Record<string, number> {
-  const result: Record<string, number> = {};
-  data.forEach(item => result[item.Status] = item.Jobcount);
-  return result;
-}
-
-// Thêm hàm render biểu đồ mới
-private renderNewChart(counts: Record<string, number>): void {
-  const Chart = (window as any).Chart;
-  const ctx = document.getElementById("newBarChart") as HTMLCanvasElement;
-
-  if (Chart.getChart(ctx)) Chart.getChart(ctx).destroy();
-
-  new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels: Object.keys(counts),
-      datasets: [{
-        label: "Job Count (from new OData)",
-        data: Object.values(counts),
-        backgroundColor: "#2196F3"
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        title: { display: true, text: "Chart from new OData" }
-      }
-    }
-  });
-}
+  }
+  
 
 
   
@@ -130,90 +120,118 @@ private renderNewChart(counts: Record<string, number>): void {
     }
   }
 
+
+
+
+  // Thêm hàm xử lý dữ liệu mới
+  private processNewChartData(data: Array<{ Status: string; Jobcount: number }>): Record<string, number> {
+    const result: Record<string, number> = {};
+    let total = 0;
   
-  public onIconTabSelect(oEvent: sap.ui.base.Event): void {
-    const sSelectedKey = oEvent.getParameter("key");
-    console.log("IconTabSelect called, key:", sSelectedKey);
-
-    // Lấy jobModel
-    const oModel = this.getOwnerComponent()?.getModel("jobModel") as JSONModel;
-    if (!oModel) {
-      console.error("jobModel not found");
-      return;
-    }
-
-    // Xử lý tab biểu đồ (tab1, tab2)
-    if (sSelectedKey === "tab1" || sSelectedKey === "tab2") {
-      // Chỉ làm mới biểu đồ, không thay đổi bộ lọc hoặc /selectedTab
-      setTimeout(() => {
-        const counts = oModel.getProperty("/counts") || {};
-        const totalJobs =
-          (counts.Scheduled || 0) +
-          (counts.Released || 0) +
-          (counts.Ready || 0) +
-          (counts.Active || 0) +
-          (counts.Running || 0) +
-          (counts.Canceled || 0) +
-          (counts.Finished || 0);
-        this._renderCharts(counts, totalJobs);
-      }, 0);
-      return;
-    }
-
-     // Xử lý tab biểu đồ mới
-    if (sSelectedKey === "tab3") {
-      const oModel = this.getOwnerComponent()?.getModel("jobModel") as JSONModel;
-      const newCounts = oModel.getProperty("/newCounts") || {};
-      this.renderNewChart(newCounts);
-      return;
+    data.forEach(item => {
+      result[item.Status] = item.Jobcount;
+      total += item.Jobcount;
+    });
+  
+    result["All"] = total; // 👈 thêm tổng job vào "All"
+    return result;
   }
 
-    // Xử lý tab trạng thái (All, Scheduled, Ready, v.v.)
-    oModel.setProperty("/selectedTab", sSelectedKey);
+// Thêm hàm render biểu đồ mới
+private renderNewChart(counts: Record<string, number>): void {
+  const Chart = (window as any).Chart;
+  const ctx = document.getElementById("newBarChart") as HTMLCanvasElement;
 
-    const oTable = this.byId("jobTable") as sap.m.Table;
-    const oBinding = oTable.getBinding("items");
-    if (!oBinding) {
-      console.error("Table binding not found");
-      return;
+  if (Chart.getChart(ctx)) Chart.getChart(ctx).destroy();
+
+  const labels = ["P", "S", "Y", "Z", "R", "A", "F"];
+  const displayLabels = ["Scheduled", "Released", "Ready", "Active", "Running", "Canceled", "Finished"];
+  const data = labels.map(key => counts[key] || 0);
+
+  new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: displayLabels,
+      datasets: [{
+        label: "Job Count",
+        data: data,
+        backgroundColor: "#2196F3"
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: { display: true, text: "Chart Job by Status" }
+      }
     }
+  });
+}
 
-    // Áp dụng bộ lọc
-    const aFilters = this._mFilters[sSelectedKey] || [];
-    console.log(
-      "Applying filter for status:",
-      sSelectedKey,
-      "Filters:",
-      aFilters
-    );
-    oBinding.filter(aFilters);
+  
+public onIconTabSelect(oEvent: sap.ui.base.Event): void {
+  const sSelectedKey = oEvent.getParameter("key");
+  console.log("IconTabSelect called, key:", sSelectedKey);
 
-    // Cập nhật tiêu đề động
-    const oCounts = oModel.getProperty("/counts") || {};
-    const iCount =
-      sSelectedKey === "All" ? oCounts.All || 0 : oCounts[sSelectedKey] || 0;
-    const oResourceBundle = this.getOwnerComponent()
-      ?.getModel("i18n")
-      ?.getResourceBundle();
-    const sTitle =
-      oResourceBundle?.getText("JobsReportTableTitle", [iCount]) ||
-      `Jobs (${iCount})`;
-    this.getView().byId("jobTableToolbar").getContent()[0].setText(sTitle);
+  const oModel = this.getOwnerComponent()?.getModel("jobModel") as JSONModel;
+  if (!oModel) {
+    console.error("jobModel not found");
+    return;
+  }
 
-    // Làm mới biểu đồ
+  oModel.setProperty("/selectedTab", sSelectedKey);
+
+  // Nếu là các tab biểu đồ
+  if (sSelectedKey === "tab1") {
+    // Biểu đồ 1
     setTimeout(() => {
       const counts = oModel.getProperty("/counts") || {};
       const totalJobs =
-        (counts.Scheduled || 0) +
-        (counts.Released || 0) +
-        (counts.Ready || 0) +
-        (counts.Active || 0) +
-        (counts.Running || 0) +
-        (counts.Canceled || 0) +
-        (counts.Finished || 0);
+        counts.Scheduled +
+        counts.Released +
+        counts.Ready +
+        counts.Active +
+        counts.Running +
+        counts.Canceled +
+        counts.Finished;
+      // this._renderCharts(counts, totalJobs);
+    }, 0);
+    return;
+  } else if (sSelectedKey === "tab3") {
+    // Biểu đồ OData mới
+    setTimeout(() => {
+      const newCounts = oModel.getProperty("/newCounts") || {};
+      this.renderNewChart(newCounts);
+    }, 0);
+    return;
+  } else if (sSelectedKey === "tab2") {
+    // Biểu đồ 2 (Delay chart)
+    setTimeout(() => {
+      const counts = oModel.getProperty("/counts") || {};
+      const totalJobs =
+        counts.Scheduled +
+        counts.Released +
+        counts.Ready +
+        counts.Active +
+        counts.Running +
+        counts.Canceled +
+        counts.Finished;
       this._renderCharts(counts, totalJobs);
     }, 0);
+    return;
   }
+
+  // Nếu chọn tab lọc theo trạng thái
+  const statusCode = this._convertTabKeyToStatus(sSelectedKey);
+
+  if (!statusCode) {
+    this._loadPage(1); 
+  } else {
+    this._loadPage(1, statusCode); 
+  }
+}
+
+
 
   //ẩn hiện biểu đồ lúc lướt/scroll
   private _setupScrollBehavior(): void {
@@ -308,33 +326,35 @@ private renderNewChart(counts: Record<string, number>): void {
   //   this._renderCharts(counts, totalJobs);
   // }
   public onChartTabSelect(oEvent: sap.ui.base.Event): void {
-    const sKey = oEvent.getParameter("key"); // Lấy key từ sự kiện (tab1, tab2)
+    const sKey = oEvent.getParameter("key");
     console.log("Chart tab selected, key:", sKey);
-
-    // Lấy jobModel
+  
     const oModel = this.getOwnerComponent()?.getModel("jobModel") as JSONModel;
     if (!oModel) {
       console.error("jobModel not found");
       return;
     }
-
-    // KHÔNG cập nhật /selectedTab hoặc bộ lọc để giữ nguyên trạng thái lọc hiện tại
-    // Chỉ làm mới biểu đồ
+  
     setTimeout(() => {
-      const counts = oModel.getProperty("/counts") || {};
-      const totalJobs =
-        counts.Scheduled +
-        counts.Released +
-        counts.Ready +
-        counts.Active +
-        counts.Running +
-        counts.Canceled +
-        counts.Finished;
-
-      // Gọi _renderCharts với counts và totalJobs
-      this._renderCharts(counts, totalJobs);
+      if (sKey === "tab1" || sKey === "tab2") {
+        const counts = oModel.getProperty("/counts") || {};
+        const totalJobs =
+          counts.Scheduled +
+          counts.Released +
+          counts.Ready +
+          counts.Active +
+          counts.Running +
+          counts.Canceled +
+          counts.Finished;
+        this._renderCharts(counts, totalJobs);
+      } else if (sKey === "tab3") {
+        const newCounts = oModel.getProperty("/newCounts") || {};
+        this.renderNewChart(newCounts);
+      }
     }, 0);
   }
+  
+
 
   private _chartKeyMap: Record<string, string> = {
     tab1: "Ready",
@@ -346,41 +366,39 @@ private renderNewChart(counts: Record<string, number>): void {
 
   public onStatusTabSelect(oEvent: sap.ui.base.Event): void {
     const sKey = oEvent.getParameter("key");
+    console.log("Status tab selected, key:", sKey);
+  
     const oModel = this.getOwnerComponent()?.getModel("jobModel") as JSONModel;
-    oModel.setProperty("/selectedTab", sKey);
-
-    const oTable = this.byId("jobTable") as sap.m.Table;
-    const oBinding = oTable.getBinding("items");
-
-    if (oBinding) {
-      const aFilters = this._mFilters[sKey] || [];
-      oBinding.filter(aFilters);
+    if (!oModel) {
+      console.error("jobModel not found");
+      return;
     }
-
-    const oCounts = oModel.getProperty("/counts");
-    if (oCounts) {
-      const iCount = oCounts[sKey] ?? 0;
+  
+    oModel.setProperty("/selectedTab", sKey);
+  
+    const statusCode = this._convertTabKeyToStatus(sKey);
+    oModel.setProperty("/activeStatusFilter", statusCode || null);
+  
+    if (!statusCode) {
+      this._loadPage(1); // All
+    } else {
+      this._loadPage(1, statusCode); // Filter theo Status
+    }
+  
+    // Cập nhật tiêu đề Table
+    const newCounts = oModel.getProperty("/newCounts");
+    if (newCounts) {
+      const iCount = newCounts[statusCode] ?? 0;
       const oBundle = this.getOwnerComponent()
         ?.getModel("i18n")
         ?.getResourceBundle();
-      const sTitle = oBundle?.getText("JobsReportTableTitle", [iCount]);
-      this.byId("jobTableToolbar").getContent()[0].setText(sTitle);
+      const sTitle = oBundle?.getText("JobsReportTableTitle", [iCount]) || `Jobs (${iCount})`;
+      const oToolbar = this.byId("jobTableToolbar") as sap.m.Toolbar;
+      oToolbar.getContent()[0].setText(sTitle);
     }
-
-    setTimeout(() => {
-      const counts = oModel.getProperty("/counts");
-      const totalJobs =
-        counts.Scheduled +
-        counts.Released +
-        counts.Ready +
-        counts.Active +
-        counts.Running +
-        counts.Canceled +
-        counts.Finished;
-
-      this._renderCharts(counts, totalJobs);
-    }, 0);
   }
+  
+  
 
   public onUpdateFinished(oEvent: sap.ui.base.Event): void {
     console.log("onUpdateFinished called");
@@ -603,7 +621,7 @@ private _renderCharts(counts: Record<string, number>, totalJobs: number): void {
           datasets: [
             {
               type: "bar",
-              label: "Số lượng jobs bị delay",
+              label: "Number of delayed jobs",
               data: delayCounts,
               backgroundColor: "rgba(54, 162, 235, 0.6)",
               borderColor: "rgba(54, 162, 235, 1)",
@@ -612,7 +630,7 @@ private _renderCharts(counts: Record<string, number>, totalJobs: number): void {
             },
             {
               type: "line",
-              label: "Tổng thời gian delay (giây)",
+              label: "Total delay time delay (second)",
               data: delayDurations,
               borderColor: "rgba(255, 99, 132, 1)",
               backgroundColor: "rgba(255, 99, 132, 0.2)",
@@ -629,9 +647,9 @@ private _renderCharts(counts: Record<string, number>, totalJobs: number): void {
             tooltip: {
               callbacks: {
                 label: function (context) {
-                  if (context.dataset.label === "Số lượng jobs bị delay") {
-                    return `Số lượng job delay: ${tooltipDelayCounts[context.dataIndex]}`;
-                  } else if (context.dataset.label === "Tổng thời gian delay (giây)") {
+                  if (context.dataset.label === "Number of delayed jobs") {
+                    return `Number of delayed jobs: ${tooltipDelayCounts[context.dataIndex]}`;
+                  } else if (context.dataset.label === "Total delay time delay (second)") {
                     return `Job count: ${tooltipJobCounts[context.dataIndex]} | Job name: ${tooltipJobNames[context.dataIndex]} | Max delay: ${tooltipMaxDelays[context.dataIndex]}s`;
                   }
                   return context.raw;
@@ -640,23 +658,23 @@ private _renderCharts(counts: Record<string, number>, totalJobs: number): void {
             },
             title: {
               display: true,
-              text: "Biểu đồ jobs bị delay trong 24 giờ gần nhất (từ OData C3)",
+              text: "Job Delay Chart Over the Last 24 Hours",
               font: { size: 20 },
             },
           },
           scales: {
             x: {
-              title: { display: true, text: "Khung giờ" },
+              title: { display: true, text: "Time frame" },
             },
             y1: {
               type: "linear",
               position: "left",
-              title: { display: true, text: "Số lượng jobs bị delay" },
+              title: { display: true, text: "Number of delayed jobs" },
             },
             y2: {
               type: "linear",
               position: "right",
-              title: { display: true, text: "Tổng thời gian delay (giây)" },
+              title: { display: true, text: "Total delay time delay (second)" },
               grid: { drawOnChartArea: false },
             },
           },
@@ -697,6 +715,155 @@ private _parseJobDateTime(dateStr: string, timeStr: string | null): Date | null 
     console.error("Error parsing job datetime:", e, { dateStr, timeStr });
     return null;
   }
+}
+
+
+
+
+private _loadPage(page: number, statusFilter?: string): void {
+  const oModel = this.getOwnerComponent()?.getModel() as sap.ui.model.odata.v2.ODataModel;
+  const oViewModel = this.getOwnerComponent()?.getModel("jobModel") as JSONModel;
+
+  // Nếu không truyền statusFilter => lấy từ model
+  if (!statusFilter) {
+    statusFilter = oViewModel.getProperty("/activeStatusFilter");
+  }
+
+  const skip = (page - 1) * this._rowsPerPage;
+  const urlParams: Record<string, string> = {
+    $top: this._rowsPerPage.toString(),
+    $skip: skip.toString(),
+  };
+
+  if (statusFilter) {
+    urlParams.$filter = `Status eq '${statusFilter}'`;
+  }
+
+  // Tính lại totalPages đúng theo filter
+  let totalRecords = this._totalJobCount;
+  if (statusFilter) {
+    const newCounts = oViewModel.getProperty("/newCounts") || {};
+    totalRecords = newCounts[statusFilter] || 0;
+  }
+  const totalPages = Math.ceil(totalRecords / this._rowsPerPage);
+  oViewModel.setProperty("/totalPages", totalPages);
+
+  oModel.read("/ZG3_ET_UI5_01Set", {
+    urlParameters: urlParams,
+    success: (oData: { results: any[] }) => {
+      let results = oData.results;
+
+      // 🔥 Nếu có filter status → lọc lại dữ liệu lần cuối tại client (cẩn thận)
+      if (statusFilter) {
+        results = results.filter(item => item.Status === statusFilter);
+      }
+
+      oViewModel.setProperty("/pagedData", results);
+
+      const oTable = this.byId("jobTable") as sap.m.Table;
+      oTable.getBinding("items")?.refresh(true);
+
+      oViewModel.setProperty("/currentPage", page);
+      this._renderPagination();
+    },
+    error: (err) => console.error("Lỗi khi phân trang:", err)
+  });
+}
+
+
+
+
+
+
+private _renderPagination(): void {
+  const oContainer = this.byId("paginationContainer") as sap.m.HBox;
+  if (!oContainer) {
+      console.error("Pagination container not found!");
+      return;
+  }
+
+  // Clear old buttons
+  oContainer.destroyItems();
+
+  // Calculate total pages
+  const totalPages = Math.ceil(this._totalJobCount / this._rowsPerPage);
+  if (totalPages <= 1) return; // No need pagination
+
+  // Config
+  const maxVisiblePages = 5; // Số trang hiển thị tối đa
+  let startPage = Math.max(1, this._currentPage - Math.floor(maxVisiblePages / 2));
+  let endPage = Math.min(startPage + maxVisiblePages - 1, totalPages);
+
+  // Adjust if not enough pages
+  if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+  }
+
+  // Previous Button
+  if (this._currentPage > 1) {
+      oContainer.addItem(
+          new sap.m.Button({
+              icon: "sap-icon://slim-arrow-left",
+              tooltip: "Previous Page",
+              press: () => this._loadPage(this._currentPage - 1)
+          })
+      );
+  }
+
+  // Page Numbers
+  for (let i = startPage; i <= endPage; i++) {
+      oContainer.addItem(
+          new sap.m.Button({
+              text: i.toString(),
+              type: i === this._currentPage ? "Emphasized" : "Transparent",
+              press: () => {
+                  if (i !== this._currentPage) {
+                      this._loadPage(i);
+                  }
+              }
+          }).addStyleClass("sapUiTinyMarginBeginEnd")
+      );
+  }
+
+  // Next Button
+  if (this._currentPage < totalPages) {
+      oContainer.addItem(
+          new sap.m.Button({
+              icon: "sap-icon://slim-arrow-right",
+              tooltip: "Next Page",
+              press: () => this._loadPage(this._currentPage + 1)
+          })
+      );
+  }
+
+  // First/Last Buttons for large datasets
+  if (totalPages > maxVisiblePages) {
+      oContainer.insertItem(
+          new sap.m.Button({
+              text: "1",
+              press: () => this._loadPage(1)
+          }),
+          0
+      );
+
+      oContainer.addItem(
+          new sap.m.Button({
+              text: totalPages.toString(),
+              press: () => this._loadPage(totalPages)
+          })
+      );
+  }
+}
+
+
+public onPreviousPage(): void {
+  const current = this.getModel("jobModel").getProperty("/currentPage");
+  this._loadPage(current - 1);
+}
+
+public onNextPage(): void {
+  const current = this.getModel("jobModel").getProperty("/currentPage");
+  this._loadPage(current + 1);
 }
 
 // 👇 ĐỪNG QUÊN ĐÓNG CLASS
