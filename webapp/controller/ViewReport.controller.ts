@@ -82,8 +82,9 @@ export default class ViewReport extends BaseController {
     if (oServiceC1Model) {
       oServiceC1Model.read("/ZG3_ET_UI5_C1Set", {
         success: (oData: { results: Array<{ Status: string; Jobcount: number }> }) => {
+          console.log("Total jobbbbbbbb:",oData.results.job)
           const newCounts = this.processNewChartData(oData.results);
-          oJSONModel.setProperty("/newCounts", newCounts);
+          oJSONModel.setProperty("/newCounts", newCounts);         
           this.renderNewChart(newCounts);
         },
         error: (err) => console.error("Lỗi load OData mới:", err)
@@ -157,11 +158,16 @@ export default class ViewReport extends BaseController {
     let total = 0;
   
     data.forEach(item => {
-      result[item.Status] = item.Jobcount;
-      total += item.Jobcount;
+      const count = typeof item.Jobcount === 'string' 
+      ? parseInt(item.Jobcount.trim(), 10) 
+      : item.Jobcount;
+      
+    result[item.Status] = count;
+    total += count;
     });
-  
-    result["All"] = total; // 👈 thêm tổng job vào "All"
+  console.log("Total:====",total);
+  result["All"] = total;
+  result["Total"] = total; // Thêm trường Total
     return result;
   }
 
@@ -175,23 +181,50 @@ private renderNewChart(counts: Record<string, number>): void {
   const labels = ["P", "S", "Y", "Z", "R", "A", "F"];
   const displayLabels = ["Scheduled", "Released", "Ready", "Active", "Running", "Canceled", "Finished"];
   const data = labels.map(key => counts[key] || 0);
-
+  const backgroundColors = ["#FFC107", "#03A9F4", "#8BC34A", "#4CAF50", "#FFEB3B", "#F44336", "#2196F3"]; // Màu tương ứng với từng trạng thái
+  const backgroundColorTotal = ["#CCCCCC","#CCCCCC","#CCCCCC","#CCCCCC","#CCCCCC","#CCCCCC","#CCCCCC"]
   new Chart(ctx, {
     type: "bar",
     data: {
       labels: displayLabels,
-      datasets: [{
+      datasets: [
+      {
         label: "Job Count",
         data: data,
-        backgroundColor: "#2196F3"
-      }]
+        backgroundColor: backgroundColors,
+       
+      },
+      {
+          label: "Sub Job Count", // Nhãn cho biểu đồ cột nhỏ
+          data: Array(data.length).fill(counts["Total"]), // Sử dụng tổng giá trị từ counts["Total"]
+          backgroundColor: backgroundColorTotal.map(color => color ), // Màu nhạt hơn
+          barPercentage: 1, // Kích thước cột nhỏ hơn
+          categoryPercentage: 0.8 // Đặt khoảng cách giữa các cột
+      }
+    ]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        title: { display: true, text: "Chart Job by Status" }
-      }
+        title: { display: true, text: "Chart Job by Status" },
+        legend: {
+      
+          display: true,
+          labels: {
+            padding: 20,
+            generateLabels: function (chart) {
+              return chart.data.labels.map((label, index) => ({
+                text: label,
+                fillStyle: chart.data.datasets[0].backgroundColor[index],
+                strokeStyle: chart.data.datasets[0].backgroundColor[index],
+                hidden: false,
+                index: index
+              }));
+            }
+          }
+        }
+      },
     }
   });
 }
