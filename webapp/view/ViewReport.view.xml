@@ -152,7 +152,8 @@
                 <SearchField
                   id="searchField" 
                   placeholder="Search..."
-                  liveChange="onSearch" />
+                  liveChange="onSearch" 
+                  search="onSearch"/>
                 <!-- <Button text="Export" icon="sap-icon://download" press="onExport" /> -->
               </Toolbar>
             </headerToolbar>

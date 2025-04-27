@@ -95,30 +95,58 @@ export default class ViewReport extends BaseController {
 
   
 
-  public onSearch(
-    oEvent: Parameters<SearchField["attachLiveChange"]>[0]
-  ): void {
+ public onSearch(oEvent: Parameters<SearchField["attachLiveChange"]>[0]): void {
     const sQuery =
-      oEvent.getParameter("query") || oEvent.getParameter("newValue") || "";
+        oEvent.getParameter("query") || oEvent.getParameter("newValue") || "";
+    const oModel = this.getOwnerComponent()?.getModel() as sap.ui.model.odata.v2.ODataModel;
+    const oViewModel = this.getOwnerComponent()?.getModel("jobModel") as JSONModel;
+    const oTable = this.byId("jobTable") as sap.m.Table;
 
-    const oTable = this.getView().byId("jobTable") as any; // Fallback to any for type resolution
-    const oBinding = oTable.getBinding("items");
-
-    if (oBinding) {
-      const aFilters = sQuery
-        ? [
-            new Filter("Jobname", FilterOperator.Contains, sQuery),
-            new Filter("Id", FilterOperator.Contains, sQuery),
-            new Filter("Status", FilterOperator.Contains, sQuery),
-            new Filter("Authcknam", FilterOperator.Contains, sQuery),
-          ]
-        : [];
-
-      oBinding.filter(
-        aFilters.length > 0 ? new Filter({ filters: aFilters, and: false }) : []
-      );
+    if (!oModel || !oViewModel) {
+        console.error("Model not found");
+        return;
     }
-  }
+
+    this._currentPage = 1;
+    oViewModel.setProperty("/currentPage", 1);
+
+    const urlParams: Record<string, string> = {
+        $top: this._rowsPerPage.toString(),
+        $skip: "0",
+    };
+
+    if (sQuery) {
+        urlParams.$filter = `substringof('${sQuery}', Jobname)`;
+    }
+
+    oModel.read("/ZG3_ET_UI5_01Set", {
+        urlParameters: urlParams,
+        success: (oData: { results: any[] }) => {
+            oViewModel.setProperty("/pagedData", oData.results);
+
+            if (sQuery) {
+                oModel.read("/ZG3_ET_UI5_01Set/$count", {
+                    urlParameters: { $filter: urlParams.$filter },
+                    success: (countData: any) => {
+                        const totalRecords = parseInt(countData, 10);
+                        const totalPages = Math.ceil(totalRecords / this._rowsPerPage);
+                        oViewModel.setProperty("/totalPages", totalPages);
+                    },
+                    error: (err) => console.error("Lỗi lấy tổng số bản ghi:", err)
+                });
+            } else {
+                const totalPages = Math.ceil(this._totalJobCount / this._rowsPerPage);
+                oViewModel.setProperty("/totalPages", totalPages);
+            }
+
+            oTable.getBinding("items")?.refresh(true);
+        },
+        error: (err) => {
+            sap.m.MessageToast.show("Lỗi khi tìm kiếm dữ liệu. Vui lòng thử lại!");
+            console.error("Lỗi khi tìm kiếm:", err.responseText);
+        }
+    });
+}
 
 
 
