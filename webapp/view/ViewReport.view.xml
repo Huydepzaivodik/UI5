@@ -178,7 +178,7 @@
                 <Text id="colEnddateHeader" text="End Date" />
               </Column>
               <Column id="colAuthcknam" width="8rem">
-                <Text id="colAuthcknamHeader" text="Authcknam" />
+                <Text id="colAuthcknamHeader" text="User Create" />
               </Column>
               <Column id="colDelay" width="10rem">
                 <Text id="colDelayHeader" text="Delay" />

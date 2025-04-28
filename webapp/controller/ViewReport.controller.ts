@@ -178,10 +178,11 @@ private renderNewChart(counts: Record<string, number>): void {
 
   if (Chart.getChart(ctx)) Chart.getChart(ctx).destroy();
 
-  const labels = ["P", "S", "Y", "Z", "R", "A", "F"];
+  const labels = ["P", "S", "Y", "Z", "R", "A", "F","All"];
   const displayLabels = ["Scheduled", "Released", "Ready", "Active", "Running", "Canceled", "Finished"];
   const data = labels.map(key => counts[key] || 0);
-  const backgroundColors = ["#FFC107", "#03A9F4", "#8BC34A", "#4CAF50", "#FFEB3B", "#F44336", "#2196F3"]; // Màu tương ứng với từng trạng thái
+  const backgroundColors = ["#EB895F", "#E8D166", "#9071CE", "#E669B9", "#41A4FF", "#D64550", "#3ECB63"]; // Màu tương ứng với từng trạng thái
+  // const backgroundColors = [ "#AAC4FF", "#FF9D76", "#FCDDB0", "#FF9D76", "#FCDDB0", "#6E85B7", "#68A7AD"]; 
   const backgroundColorTotal = ["#CCCCCC","#CCCCCC","#CCCCCC","#CCCCCC","#CCCCCC","#CCCCCC","#CCCCCC"]
   new Chart(ctx, {
     type: "bar",
@@ -198,7 +199,7 @@ private renderNewChart(counts: Record<string, number>): void {
           label: "Sub Job Count", // Nhãn cho biểu đồ cột nhỏ
           data: Array(data.length).fill(counts["Total"]), // Sử dụng tổng giá trị từ counts["Total"]
           backgroundColor: backgroundColorTotal.map(color => color ), // Màu nhạt hơn
-          barPercentage: 1, // Kích thước cột nhỏ hơn
+          barPercentage: 0.9, // Kích thước cột nhỏ hơn
           categoryPercentage: 0.8 // Đặt khoảng cách giữa các cột
       }
     ]
@@ -212,17 +213,29 @@ private renderNewChart(counts: Record<string, number>): void {
       
           display: true,
           labels: {
-            padding: 20,
             generateLabels: function (chart) {
-              return chart.data.labels.map((label, index) => ({
+              const labels = chart.data.labels || [];
+              const colors = chart.data.datasets[0].backgroundColor || [];
+              const customLabels = labels.map((label, index) => ({
                 text: label,
-                fillStyle: chart.data.datasets[0].backgroundColor[index],
-                strokeStyle: chart.data.datasets[0].backgroundColor[index],
+                fillStyle: colors[index],
+                strokeStyle: colors[index],
                 hidden: false,
-                index: index
+                index: index,
               }));
-            }
-          }
+
+              // Thêm ghi chú màu "All" vào cuối danh sách
+              customLabels.push({
+                text: "All (Total Jobs)", // Ghi chú cho "All"
+                fillStyle: "#CCCCCC", // Màu cho "All"
+                strokeStyle: "#CCCCCC",
+                hidden: false,
+                index: labels.length, // Đặt index ngoài phạm vi labels
+              });
+
+              return customLabels;
+            },
+          },
         }
       },
     }
