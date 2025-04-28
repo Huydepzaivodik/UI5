@@ -11,6 +11,7 @@
     "rootDir": "./webapp",
     "outDir": "./dist",
     "baseUrl": "./",
+    "noCheck": true,
     "paths": {
       "bjmproject/*": [
         "./webapp/*"

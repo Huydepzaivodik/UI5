@@ -52,10 +52,7 @@ builder:
         debug: true
         transformModulesToUI5:
           overridesToOverride: true
-    - name: replace-version
-      afterTask: generateCachebusterInfo
-    - name: ui5-task-zipper
-      afterTask: replace-version
+
   resources:
     excludes:
       - /Component-preload.js
