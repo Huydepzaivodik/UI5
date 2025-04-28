@@ -215,7 +215,7 @@ private renderNewChart(counts: Record<string, number>): void {
        
       },
       {
-          label: "Sub Job Count", // Nhãn cho biểu đồ cột nhỏ
+          label: "Total Job", // Nhãn cho biểu đồ cột nhỏ
           data: Array(data.length).fill(counts["Total"]), // Sử dụng tổng giá trị từ counts["Total"]
           backgroundColor: backgroundColorTotal.map(color => color ), // Màu nhạt hơn
           barPercentage: 0.9, // Kích thước cột nhỏ hơn
@@ -227,7 +227,8 @@ private renderNewChart(counts: Record<string, number>): void {
       responsive: true,  // Biểu đồ sẽ phản hồi theo kích thước màn hình
       maintainAspectRatio: false,  // Không duy trì tỷ lệ cố định của biểu đồ
       plugins: {
-        title: { display: true, text: "Chart Job by Status" },
+        title: { display: true, text: "Job Status Chart" ,font: { size: 20 }},
+        
         legend: {
       
           display: true,
@@ -677,7 +678,7 @@ private _renderCharts(counts: Record<string, number>, totalJobs: number): void {
           datasets: [
             {
               type: "bar",
-              label: "Number of delayed jobs",
+              label: "Total delayed jobs",
               data: delayCounts,
               backgroundColor: "rgba(54, 162, 235, 0.6)",
               borderColor: "rgba(54, 162, 235, 1)",
@@ -686,7 +687,7 @@ private _renderCharts(counts: Record<string, number>, totalJobs: number): void {
             },
             {
               type: "line",
-              label: "Total delay time delay (second)",
+              label: "Total delay time (s)",
               data: delayDurations,
               borderColor: "rgba(255, 99, 132, 1)",
               backgroundColor: "rgba(255, 99, 132, 0.2)",
@@ -703,9 +704,9 @@ private _renderCharts(counts: Record<string, number>, totalJobs: number): void {
             tooltip: {
               callbacks: {
                 label: function (context) {
-                  if (context.dataset.label === "Number of delayed jobs") {
-                    return `Number of delayed jobs: ${tooltipDelayCounts[context.dataIndex]}`;
-                  } else if (context.dataset.label === "Total delay time delay (second)") {
+                  if (context.dataset.label === "Total delayed jobs") {
+                    return `Total delayed jobs: ${tooltipDelayCounts[context.dataIndex]}`;
+                  } else if (context.dataset.label === "Total delay time (s)") {
                     return `Job count: ${tooltipJobCounts[context.dataIndex]} | Job name: ${tooltipJobNames[context.dataIndex]} | Max delay: ${tooltipMaxDelays[context.dataIndex]}s`;
                   }
                   return context.raw;
@@ -714,7 +715,7 @@ private _renderCharts(counts: Record<string, number>, totalJobs: number): void {
             },
             title: {
               display: true,
-              text: "Job Delay Chart Over the Last 24 Hours",
+              text: "Job Delays Chart - Last 24 Hours",
               font: { size: 20 },
             },
           },
@@ -725,12 +726,12 @@ private _renderCharts(counts: Record<string, number>, totalJobs: number): void {
             y1: {
               type: "linear",
               position: "left",
-              title: { display: true, text: "Number of delayed jobs" },
+              title: { display: true, text: "Total delayed jobs" },
             },
             y2: {
               type: "linear",
               position: "right",
-              title: { display: true, text: "Total delay time delay (second)" },
+              title: { display: true, text: "Total delay time (s)" },
               grid: { drawOnChartArea: false },
             },
           },
