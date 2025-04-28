@@ -96,82 +96,66 @@ export default class ViewReport extends BaseController {
 
   
 
-  public onSearch(oEvent?: sap.ui.base.Event): void {
-    const oViewModel = this.getOwnerComponent()?.getModel("jobModel") as JSONModel;
+ public onSearch(oEvent: Parameters<SearchField["attachLiveChange"]>[0]): void {
+    const sQuery =
+        oEvent.getParameter("query") || oEvent.getParameter("newValue") || "";
     const oModel = this.getOwnerComponent()?.getModel() as sap.ui.model.odata.v2.ODataModel;
+    const oViewModel = this.getOwnerComponent()?.getModel("jobModel") as JSONModel;
     const oTable = this.byId("jobTable") as sap.m.Table;
-    const oSearchField = this.byId("searchField") as sap.m.SearchField; // 👈 ID của ô search
-  
-    if (!oModel || !oViewModel || !oSearchField) {
-      console.error("Model or SearchField not found");
-      return;
-    }
-  
-    let sQuery = oSearchField.getValue().trim(); // 👈 Lấy trực tiếp text search mới nhất
-  
-    // ✅ update lại viewModel luôn để đồng bộ
-    oViewModel.setProperty("/searchText", sQuery);
-  
-    const statusFilter = oViewModel.getProperty("/activeStatusFilter") || "";
-  
-    const urlParams: Record<string, string> = {
-      $top: this._rowsPerPage.toString(),
-      $skip: "0",
-    };
-  
-    let filters: string[] = [];
-  
-    if (statusFilter) {
-      filters.push(`Status eq '${statusFilter}'`);
-    }
-    if (sQuery) {
-      filters.push(`substringof('${sQuery}', Jobname)`);
-    }
-  
-    if (filters.length > 0) {
-      urlParams.$filter = filters.join(" and ");
-    }
-  
-    const finalUrl = this._buildUrl("ZG3_ET_UI5_01Set", urlParams);
-    console.log("📢 [onSearch] Final OData URL:", finalUrl);
-  
-    oModel.read("/ZG3_ET_UI5_01Set", {
-      urlParameters: urlParams,
-      success: (oData: { results: any[] }) => {
-        oViewModel.setProperty("/pagedData", oData.results);
-        oTable.getBinding("items")?.refresh(true);
-        oViewModel.setProperty("/currentPage", 1);
-  
-        // Lấy lại count
-        oModel.read("/ZG3_ET_UI5_01Set/$count", {
-          urlParameters: { $filter: urlParams.$filter },
-          success: (countData: any) => {
-            const totalRecords = parseInt(countData, 10);
-            const totalPages = Math.ceil(totalRecords / this._rowsPerPage);
-            oViewModel.setProperty("/totalPages", totalPages);
-            this._totalJobCount = totalRecords; // 👈 FIX: cập nhật lại totalJobCount sau search
-            this._renderPagination();
-          },
-          error: (err) => console.error("Lỗi lấy tổng số bản ghi:", err),
-        });
-      },
-      error: (err) => {
-        sap.m.MessageToast.show("Lỗi khi tìm kiếm dữ liệu. Vui lòng thử lại!");
-        console.error("Lỗi khi tìm kiếm:", err.responseText);
-      },
-    });
-  }
-  
-  
 
+    if (!oModel || !oViewModel) {
+        console.error("Model not found");
+        return;
+    }
+
+    this._currentPage = 1;
+    oViewModel.setProperty("/currentPage", 1);
+
+    const urlParams: Record<string, string> = {
+        $top: this._rowsPerPage.toString(),
+        $skip: "0",
+    };
+
+    if (sQuery) {
+        urlParams.$filter = `substringof('${sQuery}', Jobname)`;
+    }
+
+    oModel.read("/ZG3_ET_UI5_01Set", {
+        urlParameters: urlParams,
+        success: (oData: { results: any[] }) => {
+            oViewModel.setProperty("/pagedData", oData.results);
+
+            if (sQuery) {
+                oModel.read("/ZG3_ET_UI5_01Set/$count", {
+                    urlParameters: { $filter: urlParams.$filter },
+                    success: (countData: any) => {
+                        const totalRecords = parseInt(countData, 10);
+                        const totalPages = Math.ceil(totalRecords / this._rowsPerPage);
+                        oViewModel.setProperty("/totalPages", totalPages);
+                    },
+                    error: (err) => console.error("Lỗi lấy tổng số bản ghi:", err)
+                });
+            } else {
+                const totalPages = Math.ceil(this._totalJobCount / this._rowsPerPage);
+                oViewModel.setProperty("/totalPages", totalPages);
+            }
+
+            oTable.getBinding("items")?.refresh(true);
+        },
+        error: (err) => {
+            sap.m.MessageToast.show("Lỗi khi tìm kiếm dữ liệu. Vui lòng thử lại!");
+            console.error("Lỗi khi tìm kiếm:", err.responseText);
+        }
+    });
+}
 
 
 
 
   // Thêm hàm xử lý dữ liệu mới
   private processNewChartData(data: Array<{ Status: string; Jobcount: number }>): Record<string, number> {
-    const result: Record<string, number> = {};  // Không cần phải khai báo các trạng thái từ trước, vì chúng sẽ được thêm tự động
-    let total = 0;  // Biến để tính tổng job cho "All"
+    const result: Record<string, number> = {};
+    let total = 0;
   
     data.forEach(item => {
       const count = typeof item.Jobcount === 'string' 
@@ -181,13 +165,11 @@ export default class ViewReport extends BaseController {
     result[item.Status] = count;
     total += count;
     });
-    console.log("Total:====",total);
+  console.log("Total:====",total);
   result["All"] = total;
   result["Total"] = total; // Thêm trường Total
     return result;
   }
-  
-  
 
 // Thêm hàm render biểu đồ mới
 private renderNewChart(counts: Record<string, number>): void {
@@ -202,9 +184,8 @@ private renderNewChart(counts: Record<string, number>): void {
   const backgroundColors = ["#EB895F", "#E8D166", "#9071CE", "#E669B9", "#41A4FF", "#D64550", "#3ECB63"]; // Màu tương ứng với từng trạng thái
   // const backgroundColors = [ "#AAC4FF", "#FF9D76", "#FCDDB0", "#FF9D76", "#FCDDB0", "#6E85B7", "#68A7AD"]; 
   const backgroundColorTotal = ["#CCCCCC","#CCCCCC","#CCCCCC","#CCCCCC","#CCCCCC","#CCCCCC","#CCCCCC"]
-
   new Chart(ctx, {
-    type: "bar",  // Loại biểu đồ là Bar
+    type: "bar",
     data: {
       labels: displayLabels,
       datasets: [
@@ -215,7 +196,7 @@ private renderNewChart(counts: Record<string, number>): void {
        
       },
       {
-          label: "Sub Job Count", // Nhãn cho biểu đồ cột nhỏ
+          label: "Total Job", // Nhãn cho biểu đồ cột nhỏ
           data: Array(data.length).fill(counts["Total"]), // Sử dụng tổng giá trị từ counts["Total"]
           backgroundColor: backgroundColorTotal.map(color => color ), // Màu nhạt hơn
           barPercentage: 0.9, // Kích thước cột nhỏ hơn
@@ -224,8 +205,8 @@ private renderNewChart(counts: Record<string, number>): void {
     ]
     },
     options: {
-      responsive: true,  // Biểu đồ sẽ phản hồi theo kích thước màn hình
-      maintainAspectRatio: false,  // Không duy trì tỷ lệ cố định của biểu đồ
+      responsive: true,
+      maintainAspectRatio: false,
       plugins: {
         title: { display: true, text: "Chart Job by Status" },
         legend: {
@@ -261,32 +242,68 @@ private renderNewChart(counts: Record<string, number>): void {
   });
 }
 
-
-
-
-
-
   
-public onStatusTabSelect(oEvent: sap.ui.base.Event): void {
-  const sKey = oEvent.getParameter("key");
-  console.log("Status tab selected, key:", sKey);
+public onIconTabSelect(oEvent: sap.ui.base.Event): void {
+  const sSelectedKey = oEvent.getParameter("key");
+  console.log("IconTabSelect called, key:", sSelectedKey);
 
-  const oViewModel = this.getOwnerComponent()?.getModel("jobModel") as JSONModel;
-  if (!oViewModel) {
+  const oModel = this.getOwnerComponent()?.getModel("jobModel") as JSONModel;
+  if (!oModel) {
     console.error("jobModel not found");
     return;
   }
 
-  oViewModel.setProperty("/selectedTab", sKey);
+  oModel.setProperty("/selectedTab", sSelectedKey);
 
-  const statusCode = this._convertTabKeyToStatus(sKey);
-  oViewModel.setProperty("/activeStatusFilter", statusCode || null);
+  // Nếu là các tab biểu đồ
+  if (sSelectedKey === "tab1") {
+    // Biểu đồ 1
+    setTimeout(() => {
+      const counts = oModel.getProperty("/counts") || {};
+      const totalJobs =
+        counts.Scheduled +
+        counts.Released +
+        counts.Ready +
+        counts.Active +
+        counts.Running +
+        counts.Canceled +
+        counts.Finished;
+      // this._renderCharts(counts, totalJobs);
+    }, 0);
+    return;
+  } else if (sSelectedKey === "tab3") {
+    // Biểu đồ OData mới
+    setTimeout(() => {
+      const newCounts = oModel.getProperty("/newCounts") || {};
+      this.renderNewChart(newCounts);
+    }, 0);
+    return;
+  } else if (sSelectedKey === "tab2") {
+    // Biểu đồ 2 (Delay chart)
+    setTimeout(() => {
+      const counts = oModel.getProperty("/counts") || {};
+      const totalJobs =
+        counts.Scheduled +
+        counts.Released +
+        counts.Ready +
+        counts.Active +
+        counts.Running +
+        counts.Canceled +
+        counts.Finished;
+      this._renderCharts(counts, totalJobs);
+    }, 0);
+    return;
+  }
 
-  // 🛠 Fix: Sau khi đổi status filter, gọi search lại ngay
-  this._searchWithCurrentCondition(); // Gọi lại search realtime, lấy searchText hiện tại
+  // Nếu chọn tab lọc theo trạng thái
+  const statusCode = this._convertTabKeyToStatus(sSelectedKey);
+
+  if (!statusCode) {
+    this._loadPage(1); 
+  } else {
+    this._loadPage(1, statusCode); 
+  }
 }
-
-
 
 
 
@@ -425,24 +442,27 @@ public onStatusTabSelect(oEvent: sap.ui.base.Event): void {
     const sKey = oEvent.getParameter("key");
     console.log("Status tab selected, key:", sKey);
   
-    const oViewModel = this.getOwnerComponent()?.getModel("jobModel") as JSONModel;
-    if (!oViewModel) {
+    const oModel = this.getOwnerComponent()?.getModel("jobModel") as JSONModel;
+    if (!oModel) {
       console.error("jobModel not found");
       return;
     }
   
-    oViewModel.setProperty("/selectedTab", sKey);
+    oModel.setProperty("/selectedTab", sKey);
   
     const statusCode = this._convertTabKeyToStatus(sKey);
-    oViewModel.setProperty("/activeStatusFilter", statusCode || null);
+    oModel.setProperty("/activeStatusFilter", statusCode || null);
   
-    // ✅ GỌI TRỐNG không fake event nữa
-    this.onSearch();
+    if (!statusCode) {
+      this._loadPage(1); // All
+    } else {
+      this._loadPage(1, statusCode); // Filter theo Status
+    }
   
-    // Update dynamic title (optional)
-    const newCounts = oViewModel.getProperty("/newCounts");
+    // Cập nhật tiêu đề Table
+    const newCounts = oModel.getProperty("/newCounts");
     if (newCounts) {
-      const iCount = statusCode ? (newCounts[statusCode] ?? 0) : (newCounts["All"] ?? 0);
+      const iCount = newCounts[statusCode] ?? 0;
       const oBundle = this.getOwnerComponent()
         ?.getModel("i18n")
         ?.getResourceBundle();
@@ -451,8 +471,6 @@ public onStatusTabSelect(oEvent: sap.ui.base.Event): void {
       oToolbar.getContent()[0].setText(sTitle);
     }
   }
-  
-  
   
   
 
@@ -776,12 +794,14 @@ private _parseJobDateTime(dateStr: string, timeStr: string | null): Date | null 
 
 
 
-private _loadPage(page: number): void {
+private _loadPage(page: number, statusFilter?: string): void {
   const oModel = this.getOwnerComponent()?.getModel() as sap.ui.model.odata.v2.ODataModel;
   const oViewModel = this.getOwnerComponent()?.getModel("jobModel") as JSONModel;
 
-  const searchText = oViewModel.getProperty("/searchText") || "";
-  const statusFilter = oViewModel.getProperty("/activeStatusFilter") || "";
+  // Nếu không truyền statusFilter => lấy từ model
+  if (!statusFilter) {
+    statusFilter = oViewModel.getProperty("/activeStatusFilter");
+  }
 
   const skip = (page - 1) * this._rowsPerPage;
   const urlParams: Record<string, string> = {
@@ -789,56 +809,41 @@ private _loadPage(page: number): void {
     $skip: skip.toString(),
   };
 
-  let filters: string[] = [];
-
   if (statusFilter) {
-    filters.push(`Status eq '${statusFilter}'`);
-  }
-  if (searchText) {
-    filters.push(`substringof('${searchText}', Jobname)`);
+    urlParams.$filter = `Status eq '${statusFilter}'`;
   }
 
-  if (filters.length > 0) {
-    urlParams.$filter = filters.join(" and ");
+  // Tính lại totalPages đúng theo filter
+  let totalRecords = this._totalJobCount;
+  if (statusFilter) {
+    const newCounts = oViewModel.getProperty("/newCounts") || {};
+    totalRecords = newCounts[statusFilter] || 0;
   }
+  const totalPages = Math.ceil(totalRecords / this._rowsPerPage);
+  oViewModel.setProperty("/totalPages", totalPages);
 
-  const finalUrl = this._buildUrl("ZG3_ET_UI5_01Set", urlParams);
-  console.log("📢 [LoadPage] Final OData URL:", finalUrl);
-
-  // 👉 Đọc dữ liệu
   oModel.read("/ZG3_ET_UI5_01Set", {
     urlParameters: urlParams,
     success: (oData: { results: any[] }) => {
-      oViewModel.setProperty("/pagedData", oData.results);
+      let results = oData.results;
+
+      // 🔥 Nếu có filter status → lọc lại dữ liệu lần cuối tại client (cẩn thận)
+      if (statusFilter) {
+        results = results.filter(item => item.Status === statusFilter);
+      }
+
+      oViewModel.setProperty("/pagedData", results);
 
       const oTable = this.byId("jobTable") as sap.m.Table;
       oTable.getBinding("items")?.refresh(true);
 
       oViewModel.setProperty("/currentPage", page);
-
-      // ✅ Sau khi fetch thành công, đọc thêm COUNT
-      const countParams: Record<string, string> = {};
-      if (urlParams.$filter) {
-        countParams.$filter = urlParams.$filter; // dùng lại filter
-      }
-
-      oModel.read("/ZG3_ET_UI5_01Set/$count", {
-        urlParameters: countParams,
-        success: (countData: any) => {
-          const totalRecords = parseInt(countData, 10);
-          const totalPages = Math.ceil(totalRecords / this._rowsPerPage);
-          oViewModel.setProperty("/totalPages", totalPages);
-          this._totalJobCount = totalRecords; // 👈 FIX: cập nhật lại totalJobCount sau search
-
-          // Render lại pagination
-          this._renderPagination();
-        },
-        error: (err) => console.error("Lỗi lấy count:", err)
-      });
+      this._renderPagination();
     },
     error: (err) => console.error("Lỗi khi phân trang:", err)
   });
 }
+
 
 
 
@@ -934,92 +939,6 @@ public onNextPage(): void {
   const current = this.getModel("jobModel").getProperty("/currentPage");
   this._loadPage(current + 1);
 }
-
-
-private _searchWithCurrentCondition(): void {
-  const oViewModel = this.getOwnerComponent()?.getModel("jobModel") as JSONModel;
-  const oModel = this.getOwnerComponent()?.getModel() as sap.ui.model.odata.v2.ODataModel;
-  const oTable = this.byId("jobTable") as sap.m.Table;
-  const oSearchField = this.byId("searchField") as sap.m.SearchField;
-
-  if (!oModel || !oViewModel || !oTable || !oSearchField) {
-    console.error("Missing model or table or search field");
-    return;
-  }
-
-  const sQuery = oSearchField.getValue().trim();
-  const statusFilter = oViewModel.getProperty("/activeStatusFilter") || "";
-
-  let filters: string[] = [];
-  if (statusFilter) filters.push(`Status eq '${statusFilter}'`);
-  if (sQuery) filters.push(`substringof('${sQuery}', Jobname)`);
-
-  const urlParams: Record<string, string> = {
-    $top: this._rowsPerPage.toString(),
-    $skip: "0",
-  };
-  
-  if (filters.length > 0) {
-    urlParams.$filter = filters.join(" and ");
-  }
-
-  console.log("[_searchWithCurrentCondition] Final URL:", this._buildUrl("ZG3_ET_UI5_01Set", urlParams));
-
-  oModel.read("/ZG3_ET_UI5_01Set", {
-    urlParameters: urlParams,
-    success: (oData: { results: any[] }) => {
-      oViewModel.setProperty("/pagedData", oData.results);
-      oTable.getBinding("items")?.refresh(true);
-      oViewModel.setProperty("/currentPage", 1);
-
-      // 💥 Luôn fetch lại $count, không quan tâm filter hay không
-      const countParams: Record<string, string> = {};
-      if (filters.length > 0) {
-        countParams.$filter = filters.join(" and ");
-      }
-
-      oModel.read("/ZG3_ET_UI5_01Set/$count", {
-        urlParameters: countParams,
-        success: (countData: any) => {
-          const totalRecords = parseInt(countData, 10);
-          const totalPages = Math.ceil(totalRecords / this._rowsPerPage);
-          oViewModel.setProperty("/totalPages", totalPages);
-          this._totalJobCount = totalRecords;
-          this._renderPagination();
-        },
-        error: (err) => console.error("Lỗi lấy count sau search:", err)
-      });
-    },
-    error: (err) => console.error("Lỗi search data:", err)
-  });
-}
-
-
-private _searchTimeout: any = null; // Thêm 1 biến timeout để debounce
-
-public onLiveChange(oEvent: sap.ui.base.Event): void {
-  if (this._searchTimeout) {
-    clearTimeout(this._searchTimeout);
-  }
-
-  // Đợi 300ms sau khi user ngừng gõ mới thực sự search
-  this._searchTimeout = setTimeout(() => {
-    this._searchWithCurrentCondition();
-  }, 300);
-}
-
-
-
-
-
-//console vip pro by BACH
-private _buildUrl(entitySet: string, urlParams: Record<string, string>): string {
-  const queryString = Object.entries(urlParams)
-    .map(([key, val]) => `${key}=${encodeURIComponent(val)}`)
-    .join("&");
-  return `/sap/opu/odata/SAP/ZG3_SEGW_DB_UI5_01_SRV/${entitySet}?${queryString}`;
-}
-
 
 // 👇 ĐỪNG QUÊN ĐÓNG CLASS
 }

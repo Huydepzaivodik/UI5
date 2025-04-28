@@ -163,10 +163,10 @@
                 <Text id="colIdHeader" text="ID" />
               </Column>
               <Column id="colJobname" width="20rem">
-                <Text id="colJobnameHeader" text="Jobname" />
+                <Text id="colJobnameHeader" text="Job Name" />
               </Column>
               <Column id="colJobcount" width="8rem">
-                <Text id="colJobcountHeader" text="Jobcount" />
+                <Text id="colJobcountHeader" text="Job Count" />
               </Column>
               <Column id="colStatus" width="10rem">
                 <Text id="colStatusHeader" text="Status" />
@@ -181,7 +181,7 @@
                 <Text id="colAuthcknamHeader" text="User Create" />
               </Column>
               <Column id="colDelay" width="10rem">
-                <Text id="colDelayHeader" text="Delay" />
+                <Text id="colDelayHeader" text="Delay(s)" />
               </Column>             
             </columns>
 
