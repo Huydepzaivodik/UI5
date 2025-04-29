@@ -179,9 +179,9 @@
               <Column id="colEnddate" width="10rem">
                 <Text id="colEnddateHeader" text="End Date" />
               </Column>
-              <Column id="colAuthcknam" width="8rem">
+              <!-- <Column id="colAuthcknam" width="8rem">
                 <Text id="colAuthcknamHeader" text="User Create" />
-              </Column>
+              </Column> -->
               <Column id="colDelay" width="10rem">
                 <Text id="colDelayHeader" text="Delay(s)" />
               </Column>             
@@ -232,7 +232,7 @@
                   </HBox>
                   <Text id="strtdateText" text="{path: 'jobModel>Strtdate'}" />
                   <Text id="enddateText" text="{path: 'jobModel>Enddate'}" />
-                  <Text id="authcknamText" text="{jobModel>Authcknam}" />
+                  <!-- <Text id="authcknamText" text="{jobModel>Authcknam}" /> -->
                   <Text id="delayText" text="{jobModel>Delay}" />
                 </cells>
               </ColumnListItem>
