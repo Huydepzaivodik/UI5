@@ -123,7 +123,7 @@
         <content>
         <VBox>
           <Table
-            width="85%"
+            width="100%"
             
             id="jobTable"
             items="{jobModel>/pagedData}"
@@ -182,7 +182,7 @@
               <!-- <Column id="colAuthcknam" width="8rem">
                 <Text id="colAuthcknamHeader" text="User Create" />
               </Column> -->
-              <Column id="colDelay" width="10rem">
+              <Column id="colDelay" width="10rem" demandPopin="true" minScreenWidth="Tablet" popinDisplay="Inline">
                 <Text id="colDelayHeader" text="Delay(s)" />
               </Column>             
             </columns>
