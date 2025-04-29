@@ -19,8 +19,8 @@ server:
         backend:
           - path: /sap
             url: http://s35.gb.ucc.cit.tum.de
-            username: LEARN-266
-            password: 12345678Bb
+            username: LEARN-263
+            password: huylim2003bn
 
     - name: fiori-tools-appreload
       afterMiddleware: compression
