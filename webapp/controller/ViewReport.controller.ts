@@ -130,7 +130,12 @@ export default class ViewReport extends BaseController {
   
     if (filters.length > 0) {
       urlParams.$filter = filters.join(" and ");
+      oViewModel.setProperty("/lastFilter", urlParams.$filter); // 🔥 lưu lại filter vào model
+    } else {
+      oViewModel.setProperty("/lastFilter", null); // 🔥 không có filter thì reset
     }
+
+    oViewModel.setProperty("/_currentFilter", urlParams.$filter || "");
   
     const finalUrl = this._buildUrl("ZG3_ET_UI5_01Set", urlParams);
     console.log("📢 [onSearch] Final OData URL:", finalUrl);
@@ -781,8 +786,7 @@ private _loadPage(page: number): void {
   const oModel = this.getOwnerComponent()?.getModel() as sap.ui.model.odata.v2.ODataModel;
   const oViewModel = this.getOwnerComponent()?.getModel("jobModel") as JSONModel;
 
-  const searchText = oViewModel.getProperty("/searchText") || "";
-  const statusFilter = oViewModel.getProperty("/activeStatusFilter") || "";
+  const currentFilter = oViewModel.getProperty("/_currentFilter") || "";
 
   const skip = (page - 1) * this._rowsPerPage;
   const urlParams: Record<string, string> = {
@@ -790,21 +794,11 @@ private _loadPage(page: number): void {
     $skip: skip.toString(),
   };
 
-  let filters: string[] = [];
-
-  if (statusFilter) {
-    filters.push(`Status eq '${statusFilter}'`);
-  }
-  if (searchText) {
-    filters.push(`substringof('${searchText}', Jobname)`);
+  if (currentFilter) {
+    urlParams.$filter = currentFilter;
   }
 
-  if (filters.length > 0) {
-    urlParams.$filter = filters.join(" and ");
-  }
-
-  const finalUrl = this._buildUrl("ZG3_ET_UI5_01Set", urlParams);
-  console.log("📢 [LoadPage] Final OData URL:", finalUrl);
+  console.log("[_loadPage] Real URL:", this._buildUrl("ZG3_ET_UI5_01Set", urlParams));
 
   // 👉 Đọc dữ liệu
   oModel.read("/ZG3_ET_UI5_01Set", {
@@ -819,8 +813,8 @@ private _loadPage(page: number): void {
 
       // ✅ Sau khi fetch thành công, đọc thêm COUNT
       const countParams: Record<string, string> = {};
-      if (urlParams.$filter) {
-        countParams.$filter = urlParams.$filter; // dùng lại filter
+      if (currentFilter) {
+        countParams.$filter = currentFilter;
       }
 
       oModel.read("/ZG3_ET_UI5_01Set/$count", {
@@ -829,18 +823,15 @@ private _loadPage(page: number): void {
           const totalRecords = parseInt(countData, 10);
           const totalPages = Math.ceil(totalRecords / this._rowsPerPage);
           oViewModel.setProperty("/totalPages", totalPages);
-          this._totalJobCount = totalRecords; // 👈 FIX: cập nhật lại totalJobCount sau search
-
-          // Render lại pagination
+          this._totalJobCount = totalRecords;
           this._renderPagination();
         },
-        error: (err) => console.error("Lỗi lấy count:", err)
+        error: (err) => console.error("Lỗi count paging:", err)
       });
     },
-    error: (err) => console.error("Lỗi khi phân trang:", err)
+    error: (err) => console.error("Lỗi load page:", err)
   });
 }
-
 
 
 
@@ -962,7 +953,13 @@ private _searchWithCurrentCondition(): void {
   
   if (filters.length > 0) {
     urlParams.$filter = filters.join(" and ");
+
+  oViewModel.setProperty("/lastFilter", urlParams.$filter); // 🔥
+  } else {
+    oViewModel.setProperty("/lastFilter", null);
   }
+
+  oViewModel.setProperty("/_currentFilter", urlParams.$filter || "");
 
   console.log("[_searchWithCurrentCondition] Final URL:", this._buildUrl("ZG3_ET_UI5_01Set", urlParams));
 
@@ -977,8 +974,9 @@ private _searchWithCurrentCondition(): void {
       const countParams: Record<string, string> = {};
       if (filters.length > 0) {
         countParams.$filter = filters.join(" and ");
-      }
 
+      }
+      oViewModel.setProperty("/_currentFilter", urlParams.$filter || "");  
       oModel.read("/ZG3_ET_UI5_01Set/$count", {
         urlParameters: countParams,
         success: (countData: any) => {
