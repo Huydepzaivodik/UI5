@@ -201,71 +201,62 @@ private renderNewChart(counts: Record<string, number>): void {
 
   if (Chart.getChart(ctx)) Chart.getChart(ctx).destroy();
 
-  const labels = ["P", "S", "Y", "Z", "R", "A", "F","All"];
-  const displayLabels = ["Scheduled", "Released", "Ready", "Active", "Running", "Canceled", "Finished"];
-  const data = labels.map(key => counts[key] || 0);
-  const backgroundColors = ["#EB895F", "#E8D166", "#9071CE", "#E669B9", "#41A4FF", "#D64550", "#3ECB63"]; // Màu tương ứng với từng trạng thái
-  // const backgroundColors = [ "#AAC4FF", "#FF9D76", "#FCDDB0", "#FF9D76", "#FCDDB0", "#6E85B7", "#68A7AD"]; 
-  const backgroundColorTotal = ["#CCCCCC","#CCCCCC","#CCCCCC","#CCCCCC","#CCCCCC","#CCCCCC","#CCCCCC"]
+  const statusLabels = [
+    { key: "P", label: "Scheduled", color: "#EB895F" },
+    { key: "S", label: "Released",  color: "#E8D166" },
+    { key: "Y", label: "Ready",     color: "#9071CE" },
+    { key: "Z", label: "Active",    color: "#E669B9" },
+    { key: "R", label: "Running",   color: "#41A4FF" },
+    { key: "A", label: "Canceled",  color: "#D64550" },
+    { key: "F", label: "Finished",  color: "#3ECB63" }
+  ];
+
+  const datasets = statusLabels.map((item, index) => ({
+    label: item.label,
+    data: statusLabels.map((_, i) => i === index ? (counts[item.key] || 0) : null),
+    backgroundColor: item.color,
+    stack: "statusStack"
+  }));
+
+  // Dataset tổng
+  datasets.push({
+    label: "All (Total Jobs)",
+    data: Array(statusLabels.length).fill(counts["Total"] || 0),
+    backgroundColor: "#CCCCCC",
+    stack: "totalStack"
+  });
 
   new Chart(ctx, {
-    type: "bar",  // Loại biểu đồ là Bar
+    type: "bar",
     data: {
-      labels: displayLabels,
-      datasets: [
-      {
-        label: "Job Count",
-        data: data,
-        backgroundColor: backgroundColors,
-       
-      },
-      {
-          label: "Total Job", // Nhãn cho biểu đồ cột nhỏ
-          data: Array(data.length).fill(counts["Total"]), // Sử dụng tổng giá trị từ counts["Total"]
-          backgroundColor: backgroundColorTotal.map(color => color ), // Màu nhạt hơn
-          barPercentage: 0.9, // Kích thước cột nhỏ hơn
-          categoryPercentage: 0.8 // Đặt khoảng cách giữa các cột
-      }
-    ]
+      labels: statusLabels.map(s => s.label),
+      datasets
     },
     options: {
-      responsive: true,  // Biểu đồ sẽ phản hồi theo kích thước màn hình
-      maintainAspectRatio: false,  // Không duy trì tỷ lệ cố định của biểu đồ
+      responsive: true,
+      maintainAspectRatio: false,
       plugins: {
-        title: { display: true, text: "Job Status Chart" ,font: { size: 20 }},
-        
-        legend: {
-      
+        title: {
           display: true,
-          labels: {
-            generateLabels: function (chart) {
-              const labels = chart.data.labels || [];
-              const colors = chart.data.datasets[0].backgroundColor || [];
-              const customLabels = labels.map((label, index) => ({
-                text: label,
-                fillStyle: colors[index],
-                strokeStyle: colors[index],
-                hidden: false,
-                index: index,
-              }));
-
-              // Thêm ghi chú màu "All" vào cuối danh sách
-              customLabels.push({
-                text: "All (Total Jobs)", // Ghi chú cho "All"
-                fillStyle: "#CCCCCC", // Màu cho "All"
-                strokeStyle: "#CCCCCC",
-                hidden: false,
-                index: labels.length, // Đặt index ngoài phạm vi labels
-              });
-
-              return customLabels;
-            },
-          },
+          text: "Job Status Chart",
+          font: { size: 20 }
+        },
+        legend: {
+          display: true
         }
       },
+      scales: {
+        x: {
+          stacked: true
+        },
+        y: {
+          beginAtZero: true
+        }
+      }
     }
   });
 }
+
 
 
 
