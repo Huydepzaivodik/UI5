@@ -17,18 +17,19 @@
         <!-- Tải Chart.js và chartjs-plugin-datalabels qua CDN -->
         <script src="./res/chart.js"></script>
         <script src="./res/plugin.js"></script>
-    <script
-        id="sap-ui-bootstrap"
-        src="https://sdk.openui5.org/resources/sap-ui-core.js"
-        data-sap-ui-theme="sap_horizon"
-        data-sap-ui-resourceroots='{
-            "bjmproject": "./"
-        }'
-        data-sap-ui-oninit="module:sap/ui/core/ComponentSupport"
-        data-sap-ui-compatVersion="edge"
-        data-sap-ui-async="true"
-        data-sap-ui-frameOptions="trusted"
-    ></script>
+
+        <script>
+        window["sap-ui-config"] = {
+            theme: "sap_horizon",
+            resourceroots: { "bjmproject": "./" },
+            onInit: "module:sap/ui/core/ComponentSupport",
+            compatVersion: "edge",
+            async: true,
+            frameOptions: "trusted"
+        };
+        </script>
+
+<script src="https://sdk.openui5.org/resources/sap-ui-core.js"></script>
     <link rel="stylesheet" href="css/style.css" />
 </head>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
