@@ -14,6 +14,9 @@
     <script>
         window["sap-ui-preload"] = "async";
     </script>
+        <!-- Tải Chart.js và chartjs-plugin-datalabels qua CDN -->
+        <script src="./res/chart.js"></script>
+        <script src="./res/plugin.js"></script>
     <script
         id="sap-ui-bootstrap"
         src="resources/sap-ui-core.js"
@@ -30,9 +33,6 @@
 </head>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <body class="sapUiBody sapUiSizeCompact" id="content">
-    <!-- Tải Chart.js và chartjs-plugin-datalabels qua CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0/dist/chartjs-plugin-datalabels.min.js"></script>
     <div
         data-sap-ui-component
         data-name="bjmproject"
