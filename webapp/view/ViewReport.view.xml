@@ -182,7 +182,7 @@
               <!-- <Column id="colAuthcknam" width="8rem">
                 <Text id="colAuthcknamHeader" text="User Create" />
               </Column> -->
-              <Column id="colDelay" width="10rem" demandPopin="true" minScreenWidth="Tablet" popinDisplay="Inline">
+              <Column id="colDelay" width="8rem" demandPopin="true" minScreenWidth="Tablet" popinDisplay="Inline">
                 <Text id="colDelayHeader" text="Delay(s)" />
               </Column>             
             </columns>
