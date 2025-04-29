@@ -121,9 +121,9 @@
             text="Finished" />
           </items>
         <content>
-        <VBox>
+        <VBox class="sapUiResponsiveContentPadding">
           <Table
-            width="100%"
+            
             
             id="jobTable"
             items="{jobModel>/pagedData}"
