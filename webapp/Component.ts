@@ -17,6 +17,16 @@ export default class Component extends BaseComponent {
     public init(): void {
         // Gọi hàm init của BaseComponent
         super.init();
+
+        const chartScript = document.createElement("script");
+        chartScript.src = sap.ui.require.toUrl("bjmproject/res/chart.js");
+        chartScript.async = true;
+        document.head.appendChild(chartScript);
+
+        const pluginScript = document.createElement("script");
+        pluginScript.src = sap.ui.require.toUrl("bjmproject/res/plugin.js");
+        pluginScript.async = true;
+        document.head.appendChild(pluginScript);
     
         // Gắn device model
         this.setModel(createDeviceModel(), "device");
