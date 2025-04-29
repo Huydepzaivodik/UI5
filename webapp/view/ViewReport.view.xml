@@ -34,7 +34,7 @@
               </VBox>
             </IconTabFilter> -->
 
-            <IconTabFilter key="tab3" text="Job by status">
+            <IconTabFilter key="tab3" text="Job by Status">
               <VBox>
             <core:HTML content="&lt;canvas id='newBarChart' width='100%' height='200'&gt;&lt;/canvas&gt;" />
               </VBox>             
