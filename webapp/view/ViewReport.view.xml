@@ -123,6 +123,8 @@
         <content>
         <VBox>
           <Table
+            width="85%"
+            
             id="jobTable"
             items="{jobModel>/pagedData}"
             updateFinished="onUpdateFinished"
