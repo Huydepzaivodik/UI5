@@ -4,7 +4,10 @@ import Filter from "sap/ui/model/Filter"; // Import Filter từ đúng module
 import FilterOperator from "sap/ui/model/FilterOperator"; // Import FilterOperator từ đúng module
 import SearchField from "sap/m/SearchField"; // Import SearchField từ đúng module
 import Event from "sap/ui/base/Event"; // Import Event từ đúng module
-import { sap } from "sap/ui/core/library"; // Import sap từ đúng module
+// Bằng các import trực tiếp các control cần thiết:
+import Button from "sap/m/Button";
+import HBox from "sap/m/HBox";
+import Text from "sap/m/Text";
 import JSONModel from "sap/ui/model/json/JSONModel";
 
 
@@ -156,6 +159,7 @@ export default class ViewReport extends BaseController {
             oViewModel.setProperty("/totalPages", totalPages);
             this._totalJobCount = totalRecords; // 👈 FIX: cập nhật lại totalJobCount sau search
             this._renderPagination();
+            this._renderPaginationTo("paginationContainerTop");
           },
           error: (err) => console.error("Lỗi lấy tổng số bản ghi:", err),
         });
@@ -318,49 +322,50 @@ public onStatusTabSelect(oEvent: sap.ui.base.Event): void {
     });
   }
 
-  //scroll 2
-  // Add this method to your ViewReport controller
-  public onAfterRendering(): void {
-    // Đợi DOM render xong
-    jQuery.sap.delayedCall(500, this, () => {
-      const oChartContainer = this.byId("chartContainer");
-      const oSemanticPage = this.byId("page");
+  // //scroll 2
+  // // Add this method to your ViewReport controller
+  // public onAfterRendering(): void {
+  //   // Đợi DOM render xong
+  //   jQuery.sap.delayedCall(500, this, () => {
+  //     const oChartContainer = this.byId("chartContainer");
+  //     const oSemanticPage = this.byId("page");
 
-      if (!oChartContainer || !oSemanticPage) return;
+  //     if (!oChartContainer || !oSemanticPage) return;
 
-      // Tìm container scroll thực sự
-      const oScrollContainer = oSemanticPage
-        .getDomRef()
-        ?.querySelector(".sapFSemanticPageContent") as HTMLElement;
+  //     // Tìm container scroll thực sự
+  //     const oScrollContainer = oSemanticPage
+  //       .getDomRef()
+  //       ?.querySelector(".sapFSemanticPageContent") as HTMLElement;
 
-      if (!oScrollContainer) {
-        console.error("Không tìm thấy vùng scroll");
-        return;
-      }
+  //     if (!oScrollContainer) {
+  //       console.error("Không tìm thấy vùng scroll");
+  //       return;
+  //     }
 
-      let iLastScrollTop = 0;
-      const iThreshold = 50; // Ngưỡng scroll để ẩn
+  //     let iLastScrollTop = 0;
+  //     const iThreshold = 50; // Ngưỡng scroll để ẩn
 
-      // Xử lý sự kiện scroll
-      oScrollContainer.addEventListener("scroll", () => {
-        const iCurrentScrollTop = oScrollContainer.scrollTop;
+  //     // Xử lý sự kiện scroll
+  //     oScrollContainer.addEventListener("scroll", () => {
+  //       const iCurrentScrollTop = oScrollContainer.scrollTop;
 
-        // Ẩn khi cuộn xuống quá ngưỡng
-        if (
-          iCurrentScrollTop > iThreshold &&
-          iCurrentScrollTop > iLastScrollTop
-        ) {
-          oChartContainer.$().addClass("hidden-chart");
-        }
-        // Hiện khi cuộn lên hoặc về đầu
-        else {
-          oChartContainer.$().removeClass("hidden-chart");
-        }
+  //       // Ẩn khi cuộn xuống quá ngưỡng
+  //       if (
+  //         iCurrentScrollTop > iThreshold &&
+  //         iCurrentScrollTop > iLastScrollTop
+  //       ) {
+  //         oChartContainer.$().addClass("hidden-chart");
+  //       }
+  //       // Hiện khi cuộn lên hoặc về đầu
+  //       else {
+  //         oChartContainer.$().removeClass("hidden-chart");
+  //       }
 
-        iLastScrollTop = iCurrentScrollTop;
-      });
-    });
-  }
+  //       iLastScrollTop = iCurrentScrollTop;
+  //     });
+  //   }
+  // );
+  // }
 
   // public onChartTabSelect(oEvent: sap.ui.base.Event): void {
   //   const sKey = oEvent.getParameter("key");
@@ -533,17 +538,21 @@ public onStatusTabSelect(oEvent: sap.ui.base.Event): void {
     const sTitle = oResourceBundle?.getText("JobsReportTableTitle", [
       oCounts.all,
     ]);
-    const oToolbar = this.getView().byId("jobTableToolbar") as sap.m.Toolbar;
-    // const oHBox = oToolbar.getContent()[0] as sap.m.HBox; // Lấy HBox
-    // const oTitle = oHBox.getItems()[0] as sap.m.Title; // Lấy Title trong HBox
-    // oTitle.setText(sTitle); // Cập nhật tiêu đề
-    this.getView().byId("jobTableToolbar").getContent()[0].setText(sTitle);
-
-    // const oToolbar = this.getView().byId("jobTableToolbar") as sap.m.Toolbar;
-    // const oHBox = oToolbar.getContent()[0] as sap.m.HBox; // Lấy HBox
-    // const oTitle = oHBox.getItems()[0] as sap.m.Title; // Lấy Title bên trong HBox
-    // oTitle.setText(sTitle);
+    const oToolbar = this.byId("jobTableToolbar") as sap.m.Toolbar;
+    if (oToolbar) {
+      const oHBox = oToolbar.getContent()[0] as sap.m.HBox;
+      if (oHBox) {
+        const oTitle = oHBox.getItems()[0] as sap.m.Title;
+        if (oTitle) {
+          oTitle.setText(sTitle);
+        } else {
+          console.error("Không tìm thấy Title trong HBox");
+        }
+      }
+    }
   }
+
+  
 
   public onPress(oEvent: sap.ui.base.Event): void {
     // Lấy item được click
@@ -601,36 +610,36 @@ private _renderCharts(counts: Record<string, number>, totalJobs: number): void {
   ];
   const totalBackgroundColor = labels.map(() => "#AAAAAA");
 
-  const barCtx = document.getElementById("barChart") as HTMLCanvasElement;
-  if (barCtx) {
-    const existingBarChart = (Chart as any).getChart?.(barCtx.id);
-    if (existingBarChart) existingBarChart.destroy();
+  // const barCtx = document.getElementById("barChart") as HTMLCanvasElement;
+  // if (barCtx) {
+  //   const existingBarChart = (Chart as any).getChart?.(barCtx.id);
+  //   if (existingBarChart) existingBarChart.destroy();
 
-    new Chart(barCtx, {
-      type: "bar",
-      data: {
-        labels,
-        datasets: [
-          { label: "Jobs by Status", data: data, backgroundColor: backgroundColor },
-          { label: "Total Jobs", data: totalData, backgroundColor: totalBackgroundColor },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          title: { display: true, text: "Job Status – Bar Chart", font: { size: 20 } },
-          legend: { display: false, position: "top" },
-        },
-        scales: {
-          x: { stacked: false },
-          y: { beginAtZero: true },
-        },
-      },
-    });
-  } else {
-    console.error("barChart canvas not found");
-  }
+  //   new Chart(barCtx, {
+  //     type: "bar",
+  //     data: {
+  //       labels,
+  //       datasets: [
+  //         { label: "Jobs by Status", data: data, backgroundColor: backgroundColor },
+  //         { label: "Total Jobs", data: totalData, backgroundColor: totalBackgroundColor },
+  //       ],
+  //     },
+  //     options: {
+  //       responsive: true,
+  //       maintainAspectRatio: false,
+  //       plugins: {
+  //         title: { display: true, text: "Job Status – Bar Chart", font: { size: 20 } },
+  //         legend: { display: false, position: "top" },
+  //       },
+  //       scales: {
+  //         x: { stacked: false },
+  //         y: { beginAtZero: true },
+  //       },
+  //     },
+  //   });
+  // } else {
+  //   console.error("barChart canvas not found");
+  // }
 
   // === BIỂU ĐỒ TỪ ODATA C3 ===
   const newChartCtx = document.getElementById("newChart") as HTMLCanvasElement;
@@ -777,50 +786,70 @@ private _loadPage(page: number): void {
   const oModel = this.getOwnerComponent()?.getModel() as sap.ui.model.odata.v2.ODataModel;
   const oViewModel = this.getOwnerComponent()?.getModel("jobModel") as JSONModel;
 
-  const currentFilter = oViewModel.getProperty("/_currentFilter") || "";
+  if (!oModel || !oViewModel) {
+      console.error("Không tìm thấy model");
+      sap.m.MessageToast.show("Lỗi hệ thống");
+      return;
+  }
 
+  // 1. Thiết lập tham số phân trang
+  const currentFilter = oViewModel.getProperty("/_currentFilter") || "";
   const skip = (page - 1) * this._rowsPerPage;
+  
   const urlParams: Record<string, string> = {
-    $top: this._rowsPerPage.toString(),
-    $skip: skip.toString(),
+      $top: this._rowsPerPage.toString(),
+      $skip: skip.toString()
   };
 
   if (currentFilter) {
-    urlParams.$filter = currentFilter;
+      urlParams.$filter = currentFilter;
   }
 
-  console.log("[_loadPage] Real URL:", this._buildUrl("ZG3_ET_UI5_01Set", urlParams));
-
-  // 👉 Đọc dữ liệu
+  // 2. Load dữ liệu
   oModel.read("/ZG3_ET_UI5_01Set", {
-    urlParameters: urlParams,
-    success: (oData: { results: any[] }) => {
-      oViewModel.setProperty("/pagedData", oData.results);
+      urlParameters: urlParams,
+      success: (oData: { results: any[] }) => {
+          // 3. Cập nhật dữ liệu vào model
+          oViewModel.setProperty("/pagedData", oData.results);
 
-      const oTable = this.byId("jobTable") as sap.m.Table;
-      oTable.getBinding("items")?.refresh(true);
+          // 4. Refresh binding cho bảng
+          const oTable = this.byId("jobTable") as sap.m.Table;
+          oTable.getBinding("items")?.refresh(true);
 
-      oViewModel.setProperty("/currentPage", page);
+          // 5. Load tổng số bản ghi
+          const countParams: Record<string, string> = {};
+          if (currentFilter) {
+              countParams.$filter = currentFilter;
+          }
 
-      // ✅ Sau khi fetch thành công, đọc thêm COUNT
-      const countParams: Record<string, string> = {};
-      if (currentFilter) {
-        countParams.$filter = currentFilter;
+          oModel.read("/ZG3_ET_UI5_01Set/$count", {
+              urlParameters: countParams,
+              success: (countData: any) => {
+                  const totalRecords = parseInt(countData, 10);
+                  const totalPages = Math.ceil(totalRecords / this._rowsPerPage);
+
+                  // 6. Cập nhật thông tin trang
+                  oViewModel.setProperty("/currentPage", page);
+                  oViewModel.setProperty("/totalPages", totalPages);
+                  this._totalJobCount = totalRecords;
+
+                  // 7. Render lại phân trang
+                  this._renderPagination();
+
+                  // 8. Force redraw UI
+                  this.getView()?.invalidate();
+              },
+              error: (err) => {
+                  console.error("Lỗi đếm bản ghi:", err);
+                  sap.m.MessageToast.show("Lỗi tải thông tin phân trang");
+              }
+          });
+      },
+      error: (err) => {
+          console.error("Lỗi tải trang:", err);
+          sap.m.MessageToast.show(`Lỗi tải trang ${page}`);
+          oViewModel.setProperty("/currentPage", 1);
       }
-
-      oModel.read("/ZG3_ET_UI5_01Set/$count", {
-        urlParameters: countParams,
-        success: (countData: any) => {
-          const totalRecords = parseInt(countData, 10);
-          const totalPages = Math.ceil(totalRecords / this._rowsPerPage);
-          oViewModel.setProperty("/totalPages", totalPages);
-          this._totalJobCount = totalRecords;
-          this._renderPagination();
-        },
-        error: (err) => console.error("Lỗi count paging:", err)
-      });
-    },
-    error: (err) => console.error("Lỗi load page:", err)
   });
 }
 
@@ -828,84 +857,23 @@ private _loadPage(page: number): void {
 
 
 private _renderPagination(): void {
-  const oContainer = this.byId("paginationContainer") as sap.m.HBox;
-  if (!oContainer) {
-      console.error("Pagination container not found!");
-      return;
-  }
+  const renderPagination = () => {
+    this._renderPaginationTo("paginationContainer");
+    this._renderPaginationTo("paginationContainerTop");
+  };
 
-  // Clear old buttons
-  oContainer.destroyItems();
-
-  // Calculate total pages
-  const totalPages = Math.ceil(this._totalJobCount / this._rowsPerPage);
-  if (totalPages <= 1) return; // No need pagination
-
-  // Config
-  const maxVisiblePages = 5; // Số trang hiển thị tối đa
-  let startPage = Math.max(1, this._currentPage - Math.floor(maxVisiblePages / 2));
-  let endPage = Math.min(startPage + maxVisiblePages - 1, totalPages);
-
-  // Adjust if not enough pages
-  if (endPage - startPage + 1 < maxVisiblePages) {
-      startPage = Math.max(1, endPage - maxVisiblePages + 1);
-  }
-
-  // Previous Button
-  if (this._currentPage > 1) {
-      oContainer.addItem(
-          new sap.m.Button({
-              icon: "sap-icon://slim-arrow-left",
-              tooltip: "Previous Page",
-              press: () => this._loadPage(this._currentPage - 1)
-          })
-      );
-  }
-
-  // Page Numbers
-  for (let i = startPage; i <= endPage; i++) {
-      oContainer.addItem(
-          new sap.m.Button({
-              text: i.toString(),
-              type: i === this._currentPage ? "Emphasized" : "Transparent",
-              press: () => {
-                  if (i !== this._currentPage) {
-                      this._loadPage(i);
-                  }
-              }
-          }).addStyleClass("sapUiTinyMarginBeginEnd")
-      );
-  }
-
-  // Next Button
-  if (this._currentPage < totalPages) {
-      oContainer.addItem(
-          new sap.m.Button({
-              icon: "sap-icon://slim-arrow-right",
-              tooltip: "Next Page",
-              press: () => this._loadPage(this._currentPage + 1)
-          })
-      );
-  }
-
-  // First/Last Buttons for large datasets
-  if (totalPages > maxVisiblePages) {
-      oContainer.insertItem(
-          new sap.m.Button({
-              text: "1",
-              press: () => this._loadPage(1)
-          }),
-          0
-      );
-
-      oContainer.addItem(
-          new sap.m.Button({
-              text: totalPages.toString(),
-              press: () => this._loadPage(totalPages)
-          })
-      );
+  // Đảm bảo render sau khi DOM updated
+  if (this.getView()?.getDomRef()) {
+    renderPagination();
+  } else {
+    this.getView()?.addEventDelegate({
+      // onAfterRendering: () => renderPagination()
+    });
   }
 }
+
+
+
 
 
 public onPreviousPage(): void {
@@ -1009,6 +977,152 @@ private _buildUrl(entitySet: string, urlParams: Record<string, string>): string 
     .join("&");
   return `/sap/opu/odata/SAP/ZG3_SEGW_DB_UI5_01_SRV/${entitySet}?${queryString}`;
 }
+
+
+
+private _renderPaginationTo(containerId: string): void {
+  try {
+    console.log(`[DEBUG] 🚀 Bắt đầu render phân trang cho ${containerId}`);
+
+    // 1. Kiểm tra sự tồn tại của container
+    const oContainer = this.byId(containerId);
+    if (!oContainer || !(oContainer instanceof sap.m.HBox)) {
+      console.error(`[ERROR] Container ${containerId} không tồn tại hoặc không phải HBox`);
+      return;
+    }
+
+    // 2. Kiểm tra model
+    const oJobModel = this.getOwnerComponent()?.getModel("jobModel");
+    if (!oJobModel || !(oJobModel instanceof JSONModel)) {
+      console.error("[ERROR] JobModel không hợp lệ");
+      return;
+    }
+
+    // 3. Lấy dữ liệu từ model
+    const currentPage: number = oJobModel.getProperty("/currentPage") || 1;
+    const totalPages: number = oJobModel.getProperty("/totalPages") || 0;
+    console.log(`[DEBUG] 📄 Trang hiện tại: ${currentPage}, Tổng trang: ${totalPages}`);
+
+    // 4. Xác thực dữ liệu
+    if (typeof currentPage !== 'number' || typeof totalPages !== 'number') {
+      console.error("[ERROR] Giá trị trang không hợp lệ");
+      return;
+    }
+
+    // 5. Xóa các item cũ
+    while (oContainer.getItems().length > 0) {
+      oContainer.removeItem(oContainer.getItems()[0]);
+    }
+
+    // 6. Chỉ render nếu có nhiều hơn 1 trang
+    if (totalPages <= 1) {
+      console.log(`[DEBUG] ⚠️ Không cần phân trang (totalPages = ${totalPages})`);
+      return;
+    }
+
+    // 7. Thêm các thành phần phân trang
+    console.log(`[DEBUG] 🛠️ Bắt đầu thêm các thành phần phân trang...`);
+
+    // 7.1 Thêm nút đầu trang
+    this._addNavigationButton(oContainer, "sap-icon://media-rewind", 1, currentPage > 1);
+
+    // 7.2 Thêm nút trang trước
+    this._addNavigationButton(oContainer, "sap-icon://slim-arrow-left", currentPage - 1, currentPage > 1);
+
+    // 7.3 Thêm dãy số trang
+    const { start, end } = this._calculatePageRange(currentPage, totalPages);
+    
+    if (start > 1) {
+      oContainer.addItem(new sap.m.Text({ text: "..." }));
+    }
+
+    for (let i = start; i <= end; i++) {
+      const btn = this._createPageButton(i);
+      if (btn) oContainer.addItem(btn);
+    }
+
+    if (end < totalPages) {
+      oContainer.addItem(new sap.m.Text({ text: "..." }));
+    }
+
+    // 7.4 Thêm nút trang sau
+    this._addNavigationButton(oContainer, "sap-icon://slim-arrow-right", currentPage + 1, currentPage < totalPages);
+
+    // 7.5 Thêm nút cuối trang
+    this._addNavigationButton(oContainer, "sap-icon://media-forward", totalPages, currentPage < totalPages);
+
+    console.log(`[DEBUG] ✅ Render phân trang thành công cho ${containerId}`);
+
+  } catch (error) {
+    console.error(`[ERROR] Lỗi nghiêm trọng trong render phân trang: ${error}`);
+    sap.m.MessageToast.show("Lỗi hệ thống khi tải phân trang");
+  }
+}
+
+// ====================================================================
+// CÁC PHƯƠNG THỨC HỖ TRỢ
+// ====================================================================
+
+private _addNavigationButton(
+  container: HBox,
+  icon: string,
+  targetPage: number,
+  enabled: boolean
+): void {
+  const btn = new Button({
+    icon,
+    enabled,
+    press: () => this._loadPage(targetPage),
+    tooltip: `Đến trang ${targetPage}`,
+    type: "Transparent"
+  });
+
+  // 👇 Thêm class đúng cách
+  btn.addStyleClass("sapUiTinyMargin");
+  
+  container.addItem(btn);
+}
+
+private _calculatePageRange(current: number, total: number): { start: number; end: number } {
+  const visiblePages = 5;
+  let start = Math.max(1, current - Math.floor(visiblePages / 2));
+  let end = start + visiblePages - 1;
+
+  if (end > total) {
+    end = total;
+    start = Math.max(1, end - visiblePages + 1);
+  }
+
+  return { start, end };
+}
+
+private _createPageButton(page: number): Button | null {
+  try {
+    const oModel = this.getOwnerComponent()?.getModel("jobModel");
+    if (!oModel) return null;
+
+    const currentPage: number = oModel.getProperty("/currentPage") || 1;
+    
+    const btn = new Button({
+      text: page.toString(),
+      type: page === currentPage ? "Emphasized" : "Transparent",
+      press: () => this._loadPage(page),
+      width: "3rem",
+      tooltip: `Trang ${page}`
+    });
+
+    // 👇 Thêm class đúng cách
+    btn.addStyleClass("sapUiTinyMargin");
+
+    return btn;
+  } catch (error) {
+    console.error(`Lỗi tạo nút trang ${page}:`, error);
+    return null;
+  }
+}
+
+
+
 
 
 // 👇 ĐỪNG QUÊN ĐÓNG CLASS

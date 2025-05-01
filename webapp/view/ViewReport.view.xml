@@ -17,7 +17,7 @@
                     src="https://www.sap.com/dam/application/shared/logos/sap-logo-svg.svg"
                     width="75px"
                 />
-                <Title text="{i18n>title}" />
+                <Title id="dynamicTitle" text="{i18n>title}"/>
             </HBox>
         </semantic:titleHeading>
 
@@ -134,8 +134,8 @@
             items="{jobModel>/pagedData}"
             updateFinished="onUpdateFinished"
             class="sapUiSizeCompact"
-            growing="true"
-            growingScrollToLoad="true">
+            growing="false"
+            growingScrollToLoad="false">
             <!-- Container cho các nút phân trang -->
           <!-- <HBox id="paginationContainer" justifyContent="Center" class="sapUiSmallMargin"/> -->
             <headerToolbar>
@@ -244,30 +244,24 @@
             </items>
           </Table>
 </ScrollContainer>
-          <!-- Thanh phân trang -->
-        <OverflowToolbar class="sapUiTinyMarginTop">
-          <ToolbarSpacer/>
-          <HBox justifyContent="Center" alignItems="Center">
-          <Button
-            icon="sap-icon://slim-arrow-left"
-            enabled="{= ${jobModel>/currentPage} > 1 }"
-            press=".onPreviousPage"
-            class="sapUiTinyMarginEnd"/>
-      
-         <Text 
-            text="Page {jobModel>/currentPage} of {jobModel>/totalPages}"
-            class="sapUiTinyMarginBeginEnd"/>
 
-          <Button
-            icon="sap-icon://slim-arrow-right"
-            enabled="{= ${jobModel>/totalPages} > ${jobModel>/currentPage} }"
-            press=".onNextPage"
-            class="sapUiTinyMarginEnd"/>
-      
-            <!-- ... Giữ nguyên nút Previous/Next ... -->
-          </HBox>
-          <ToolbarSpacer/>
-        </OverflowToolbar>
+         <!-- Thay thế toàn bộ phần phân trang cũ bằng đoạn này -->
+<OverflowToolbar class="sapUiTinyMarginTop">
+    <ToolbarSpacer/>
+    <HBox id="paginationContainerTop" 
+        justifyContent="Center" 
+        alignItems="Center"
+        visible="{= ${jobModel>/totalPages} > 1 }"
+        class="sapUiSmallMargin"/>
+    <ToolbarSpacer/>
+</OverflowToolbar>
+
+<HBox id="paginationContainer"
+    justifyContent="Center"
+    alignItems="Center"
+    visible="{= ${jobModel>/totalPages} > 1 }"
+    class="sapUiSmallMarginTop"
+    width="100%"/>
 
         <!-- Nút "Gửi báo cáo" đặt ở đây -->
         <!-- <OverflowToolbar class="sapUiTinyMarginTop">
