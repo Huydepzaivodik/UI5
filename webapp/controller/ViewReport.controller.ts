@@ -423,36 +423,36 @@ public onStatusTabSelect(oEvent: sap.ui.base.Event): void {
     // Thêm các ánh xạ khác nếu cần
   };
 
-  public onStatusTabSelect(oEvent: sap.ui.base.Event): void {
-    const sKey = oEvent.getParameter("key");
-    console.log("Status tab selected, key:", sKey);
+  // public onStatusTabSelect(oEvent: sap.ui.base.Event): void {
+  //   const sKey = oEvent.getParameter("key");
+  //   console.log("Status tab selected, key:", sKey);
   
-    const oViewModel = this.getOwnerComponent()?.getModel("jobModel") as JSONModel;
-    if (!oViewModel) {
-      console.error("jobModel not found");
-      return;
-    }
+  //   const oViewModel = this.getOwnerComponent()?.getModel("jobModel") as JSONModel;
+  //   if (!oViewModel) {
+  //     console.error("jobModel not found");
+  //     return;
+  //   }
   
-    oViewModel.setProperty("/selectedTab", sKey);
+  //   oViewModel.setProperty("/selectedTab", sKey);
   
-    const statusCode = this._convertTabKeyToStatus(sKey);
-    oViewModel.setProperty("/activeStatusFilter", statusCode || null);
+  //   const statusCode = this._convertTabKeyToStatus(sKey);
+  //   oViewModel.setProperty("/activeStatusFilter", statusCode || null);
   
-    // ✅ GỌI TRỐNG không fake event nữa
-    this.onSearch();
+  //   // ✅ GỌI TRỐNG không fake event nữa
+  //   this.onSearch();
   
-    // Update dynamic title (optional)
-    const newCounts = oViewModel.getProperty("/newCounts");
-    if (newCounts) {
-      const iCount = statusCode ? (newCounts[statusCode] ?? 0) : (newCounts["All"] ?? 0);
-      const oBundle = this.getOwnerComponent()
-        ?.getModel("i18n")
-        ?.getResourceBundle();
-      const sTitle = oBundle?.getText("JobsReportTableTitle", [iCount]) || `Jobs (${iCount})`;
-      const oToolbar = this.byId("jobTableToolbar") as sap.m.Toolbar;
-      oToolbar.getContent()[0].setText(sTitle);
-    }
-  }
+  //   // Update dynamic title (optional)
+  //   const newCounts = oViewModel.getProperty("/newCounts");
+  //   if (newCounts) {
+  //     const iCount = statusCode ? (newCounts[statusCode] ?? 0) : (newCounts["All"] ?? 0);
+  //     const oBundle = this.getOwnerComponent()
+  //       ?.getModel("i18n")
+  //       ?.getResourceBundle();
+  //     const sTitle = oBundle?.getText("JobsReportTableTitle", [iCount]) || `Jobs (${iCount})`;
+  //     const oToolbar = this.byId("jobTableToolbar") as sap.m.Toolbar;
+  //     oToolbar.getContent()[0].setText(sTitle);
+  //   }
+  // }
   
   
   
